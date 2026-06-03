@@ -1,0 +1,218 @@
+<style>
+  /* ── Sidebar Custom Styling ── */
+  #sidebar {
+    /* Mode Terang: Background sangat soft (putih sedikit hijau), teks gelap */
+    background-color: #fcfdfc !important;
+    border-right: 1px solid #e0e8e3 !important;
+    box-shadow: 4px 0 15px rgba(0, 107, 53, 0.03) !important;
+  }
+  
+  /* Teks dan ikon Mode Terang */
+  #sidebar nav > header a,
+  #sidebar nav > header a span,
+  #sidebar section h3,
+  #sidebar section a,
+  #sidebar section a span,
+  #sidebar footer button,
+  #sidebar footer button span,
+  #sidebar footer .text-muted-foreground {
+    color: #1a2e22 !important;
+  }
+  
+  #sidebar section a svg {
+    color: #4a6353 !important;
+    stroke: #4a6353 !important;
+  }
+
+  /* Hover & Active Mode Terang */
+  #sidebar section a:hover {
+    background-color: #e8f0eb !important;
+  }
+  #sidebar section a[aria-current="page"] {
+    background-color: #e8f0eb !important;
+    border-left: 3px solid #006B35 !important;
+    font-weight: 600 !important;
+  }
+  #sidebar section a[aria-current="page"] span {
+    color: #006B35 !important;
+  }
+  #sidebar section a[aria-current="page"] svg {
+    color: #006B35 !important;
+    stroke: #006B35 !important;
+  }
+  
+  /* ── Mode Gelap (Dark Mode) ── */
+  html.dark #sidebar {
+    background-color: #0f1a14 !important;
+    border-right: 1px solid #1a2e22 !important;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  html.dark #sidebar nav > header a,
+  html.dark #sidebar nav > header a span,
+  html.dark #sidebar section h3,
+  html.dark #sidebar section a,
+  html.dark #sidebar section a span,
+  html.dark #sidebar footer button,
+  html.dark #sidebar footer button span {
+    color: #e0e8e3 !important;
+  }
+  
+  html.dark #sidebar footer .text-muted-foreground {
+    color: #8c9c91 !important;
+  }
+  
+  html.dark #sidebar section a svg {
+    color: #8c9c91 !important;
+    stroke: #8c9c91 !important;
+  }
+  
+  html.dark #sidebar section a:hover {
+    background-color: #1a2e22 !important;
+  }
+  
+  html.dark #sidebar section a[aria-current="page"] {
+    background-color: #1a2e22 !important;
+    border-left: 3px solid #C8A951 !important;
+  }
+  html.dark #sidebar section a[aria-current="page"] span {
+    color: #C8A951 !important;
+  }
+  html.dark #sidebar section a[aria-current="page"] svg {
+    color: #C8A951 !important;
+    stroke: #C8A951 !important;
+  }
+</style>
+
+<aside id="sidebar" class="sidebar" data-side="left" aria-hidden="false">
+  <nav aria-label="Sidebar navigation">
+    <header>
+      <a href="/home" class="btn-ghost p-2 h-12 w-full justify-start">
+        <div class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg" style="background-color: #006B35; color: white;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="grid flex-1 text-left text-sm leading-tight">
+          <span class="truncate font-semibold">Sistem Pengabdian</span>
+          <span class="truncate text-xs text-muted-foreground">Kelompok 13 &middot; PWEB B</span>
+        </div>
+      </a>
+    </header>
+
+    <section class="scrollbar">
+      <div role="group" aria-labelledby="group-label-main">
+        <h3 id="group-label-main" class="px-2 font-semibold" style="opacity: 0.6;">Menu Utama</h3>
+        <ul>
+          <li>
+            <a href="/home">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/>
+                <rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>
+              </svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div role="group" aria-labelledby="group-label-pengabdian">
+        <h3 id="group-label-pengabdian" class="px-2 font-semibold" style="opacity: 0.6; margin-top: 1rem;">Pengabdian</h3>
+        <ul>
+          <li>
+            <a href="/pengabdian">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/>
+                <line x1="10" x2="8" y1="9" y2="9"/>
+              </svg>
+              <span>Daftar Pengabdian</span>
+            </a>
+          </li>
+          <li>
+            <a href="/pengabdian/create">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14"/><path d="M12 5v14"/>
+              </svg>
+              <span>Tambah Pengabdian</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div role="group" aria-labelledby="group-label-keanggotaan">
+        <h3 id="group-label-keanggotaan" class="px-2 font-semibold" style="opacity: 0.6; margin-top: 1rem;">Keanggotaan</h3>
+        <ul>
+          <li>
+            <a href="/undangan">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"/>
+              </svg>
+              <span>Undangan Keanggotaan</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div role="group" aria-labelledby="group-label-api">
+        <h3 id="group-label-api" class="px-2 font-semibold" style="opacity: 0.6; margin-top: 1rem;">Lainnya</h3>
+        <ul>
+          <li>
+            <a href="/api/pengabdian" target="_blank">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              </svg>
+              <span>REST API</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      <div id="sidebar-user-popover" class="popover">
+        <button
+          id="sidebar-user-popover-trigger"
+          type="button"
+          aria-expanded="false"
+          aria-controls="sidebar-user-popover-popover"
+          class="btn-ghost p-2 h-12 w-full flex items-center justify-start"
+          data-keep-mobile-sidebar-open="">
+          <div class="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-full font-semibold text-sm" style="background-color: #006B35; color: white;">
+            <%= locals.user ? locals.user.name.charAt(0).toUpperCase() : 'U' %>
+          </div>
+          <div class="grid flex-1 text-left text-sm leading-tight">
+            <span class="truncate font-medium"><%= locals.user ? locals.user.name : 'User' %></span>
+            <span class="truncate text-xs capitalize text-muted-foreground"><%= locals.user ? locals.user.role : '' %></span>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>
+          </svg>
+        </button>
+        <div id="sidebar-user-popover-popover" data-popover aria-hidden="true" data-side="top" class="w-[240px]" style="background-color: #ffffff; border: 1px solid #e0e8e3; color: #1a2e22;">
+          <div class="grid gap-3">
+            <header class="grid gap-0.5">
+              <h2 class="font-semibold text-sm"><%= locals.user ? locals.user.name : 'User' %></h2>
+              <p class="text-xs" style="color: #4a6353;"><%= locals.user ? locals.user.email : '' %></p>
+              <span class="badge badge-outline capitalize text-xs w-fit" style="color: #006B35; border-color: #006B35;"><%= locals.user ? locals.user.role : '' %></span>
+            </header>
+            <footer>
+              <a href="/logout" class="btn-sm-outline w-full" style="color: #d32f2f; border-color: #fca5a5;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>
+                </svg>
+                Logout
+              </a>
+            </footer>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </nav>
+</aside>

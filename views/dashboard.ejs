@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+          document.documentElement.classList.add("dark");
+      } catch (_) {}
+      document.addEventListener("basecoat:theme", (e) => {
+        const mode = e.detail?.mode;
+        const dark = mode === "dark" ? true : mode === "light" ? false : !document.documentElement.classList.contains("dark");
+        document.documentElement.classList.toggle("dark", dark);
+        try { localStorage.setItem("themeMode", dark ? "dark" : "light"); } catch (_) {}
+      });
+    })();
+    (function () {
+      try {
+        const t = localStorage.getItem("themeVariant");
+        if (t) document.documentElement.classList.add(`theme-${t}`);
+      } catch (_) {}
+    })();
+  </script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dashboard — Sistem Pengabdian UNAND</title>
+  <meta name="description" content="Dashboard Sistem Informasi Pengabdian Dosen Universitas Andalas — Kelompok 13 PWEB B"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/assets/styles.css"/>
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+  <style>
+    :root {
+      --unand-green:       #006B35;
+      --unand-green-light: #1a8a4a;
+      --unand-green-pale:  #e8f5ed;
+      --unand-gold:        #C8A951;
+      --unand-gold-dark:   #96782e;
+      --unand-gold-pale:   #fdf8ec;
+    }
+
+    body { font-family: 'Inter', sans-serif; }
+
+
+
+    /* ── Stat cards ── */
+    .stat-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      border: 1px solid #e8edf0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .stat-card:hover { box-shadow: 0 4px 16px rgba(0,107,53,0.12); transform: translateY(-1px); }
+    .dark .stat-card { background: #1e2a24; border-color: #2d3f35; }
+    .stat-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-value { font-size: 2rem; font-weight: 700; line-height: 1; }
+    .stat-label { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+    .dark .stat-label { color: #9ca3af; }
+
+    /* ── Welcome banner ── */
+    .welcome-banner {
+      background: linear-gradient(135deg, #006B35 0%, #1a8a4a 60%, #C8A951 100%);
+      border-radius: 16px;
+      padding: 28px 32px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .welcome-banner::before {
+      content: '';
+      position: absolute; top: -40px; right: -40px;
+      width: 200px; height: 200px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+    .welcome-banner::after {
+      content: '';
+      position: absolute; bottom: -60px; right: 60px;
+      width: 150px; height: 150px;
+      background: rgba(200,169,81,0.15);
+      border-radius: 50%;
+    }
+
+    /* ── Table custom ── */
+    .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .data-table thead th {
+      background: var(--unand-green-pale);
+      color: var(--unand-green);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 16px;
+      border-bottom: 2px solid #d1e8d9;
+    }
+    .dark .data-table thead th { background: #1e2a24; color: #86c99e; border-color: #2d3f35; }
+    .data-table tbody td { padding: 12px 16px; border-bottom: 1px solid #f0f4f2; font-size: 0.875rem; }
+    .dark .data-table tbody td { border-color: #2d3f35; color: #d1e0d8; }
+    .data-table tbody tr:hover td { background: var(--unand-green-pale); }
+    .dark .data-table tbody tr:hover td { background: rgba(30,42,36,0.6); }
+
+    /* Status badges */
+    .badge-proposed { background: #fef9ec; color: #92400e; border: 1px solid #fde68a; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; }
+    .badge-ongoing  { background: var(--unand-green-pale); color: var(--unand-green); border: 1px solid #a7d7b5; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; }
+    .badge-completed { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; }
+    .dark .badge-proposed { background: #1f1700; color: #d4a437; border-color: #3a2e10; }
+    .dark .badge-ongoing  { background: #0b1f14; color: #5dbf85; border-color: #1a4028; }
+    .dark .badge-completed { background: #0f1825; color: #60a5fa; border-color: #1e3a6e; }
+
+    /* Card UNAND style */
+    .unand-card {
+      background: #fff;
+      border: 1px solid #e8edf0;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .dark .unand-card { background: #1e2a24; border-color: #2d3f35; }
+    .unand-card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid #f0f4f2;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .dark .unand-card-header { border-color: #2d3f35; }
+    .unand-card-header h2 { font-size: 1rem; font-weight: 600; color: var(--unand-green); margin: 0; }
+    .dark .unand-card-header h2 { color: #86c99e; }
+    .unand-card-header p { font-size: 0.8rem; color: #6b7280; margin: 4px 0 0; }
+    .dark .unand-card-header p { color: #9ca3af; }
+    .unand-card-footer { padding: 14px 24px; border-top: 1px solid #f0f4f2; background: #f9fafb; }
+    .dark .unand-card-footer { border-color: #2d3f35; background: #172119; }
+
+    /* Empty state font fix */
+    .dark .empty-title { color: #d1e0d8; }
+    .dark .empty-desc { color: #9ca3af; }
+    .dark .stat-value { color: #d1e0d8; }
+  </style>
+</head>
+<body>
+
+  <%- include('partials/sidebar') %>
+
+  <main id="content">
+    <%- include('partials/topbar', { pageTitle: 'Dashboard' }) %>
+
+    <div class="p-4 md:p-6" style="max-width:1280px; margin:0 auto;">
+
+      <!-- Welcome Banner -->
+      <div class="welcome-banner">
+        <div style="position:relative;z-index:1;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg>
+            </div>
+            <span style="font-size:0.8rem;font-weight:500;opacity:0.85;">Universitas Andalas</span>
+          </div>
+          <% if (isAdmin) { %>
+          <h1 style="font-size:1.6rem;font-weight:700;margin:0 0 6px;">Selamat Datang, <%= user ? user.name : 'Administrator' %></h1>
+          <p style="opacity:0.85;font-size:0.9rem;margin:0;">Berikut ringkasan seluruh data pengabdian dosen di Universitas Andalas.</p>
+          <% } else { %>
+          <h1 style="font-size:1.6rem;font-weight:700;margin:0 0 6px;">Selamat Datang, <%= user ? user.name : 'Dosen' %></h1>
+          <p style="opacity:0.85;font-size:0.9rem;margin:0;">Kelola dan pantau kegiatan pengabdian Anda di sini.</p>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Stat Cards (4 kolom horizontal) -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+
+        <% if (isAdmin) { %>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#006B35" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" style="color:#006B35;"><%= totalDosen %></div>
+            <div class="stat-label">Total Dosen</div>
+          </div>
+        </div>
+        <% } else { %>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fdf8ec;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C8A951" stroke-width="2">
+              <path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" style="color:#C8A951;"><%= pendingInvitations %></div>
+            <div class="stat-label">Undangan Masuk</div>
+          </div>
+        </div>
+        <% } %>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f5ed;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#006B35" stroke-width="2">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value"><%= stats.total %></div>
+            <div class="stat-label"><%= isAdmin ? 'Seluruh sistem' : 'Milik Anda' %></div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f5ed;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a8a4a" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" style="color:#1a8a4a;"><%= stats.ongoing %></div>
+            <div class="stat-label">Sedang Berjalan</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#eff6ff;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" style="color:#2563eb;"><%= stats.completed %></div>
+            <div class="stat-label">Selesai</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Alert undangan pending (hanya dosen) -->
+      <% if (!isAdmin && pendingInvitations > 0) { %>
+      <div style="background:#fdf8ec;border:1px solid #e0cfa0;border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;">
+        <div style="width:40px;height:40px;background:#C8A951;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"/>
+          </svg>
+        </div>
+        <div style="flex:1;">
+          <p style="font-weight:600;color:#92400e;margin:0 0 2px;">Undangan Keanggotaan Menunggu</p>
+          <p style="font-size:0.85rem;color:#a16207;margin:0;">Anda memiliki <strong><%= pendingInvitations %></strong> undangan yang belum direspons.</p>
+        </div>
+        <a href="/undangan" style="background:#C8A951;color:#fff;padding:8px 16px;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;white-space:nowrap;">Lihat Sekarang</a>
+      </div>
+      <% } %>
+
+      <!-- Tabel Pengabdian Terbaru -->
+      <div class="unand-card">
+        <div class="unand-card-header">
+          <div>
+            <h2><%= isAdmin ? 'Pengabdian Terbaru — Semua Dosen' : 'Pengabdian Terbaru Anda' %></h2>
+            <p>5 kegiatan pengabdian yang paling baru diinput ke sistem.</p>
+          </div>
+          <% if (!isAdmin) { %>
+          <a href="/pengabdian/create" style="background:var(--unand-green);color:#fff;padding:8px 16px;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Tambah
+          </a>
+          <% } %>
+        </div>
+
+        <% if (recentServices.length === 0) { %>
+        <div style="text-align:center;padding:48px 24px;">
+          <div style="width:64px;height:64px;background:var(--unand-green-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#006B35" stroke-width="1.5">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+          <p class="empty-title" style="font-weight:600;color:#374151;margin:0 0 4px;">Belum Ada Data Pengabdian</p>
+          <p class="empty-desc" style="font-size:0.85rem;color:#9ca3af;margin:0 0 16px;">Mulai tambahkan kegiatan pengabdian pertama Anda.</p>
+          <% if (!isAdmin) { %>
+          <a href="/pengabdian/create" style="background:var(--unand-green);color:#fff;padding:10px 20px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;display:inline-block;">Tambah Pengabdian</a>
+          <% } %>
+        </div>
+        <% } else { %>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="text-align:left;">#</th>
+                <% if (isAdmin) { %><th style="text-align:left;">Dosen</th><% } %>
+                <th style="text-align:left;">Judul Pengabdian</th>
+                <th style="text-align:left;">Lokasi</th>
+                <th style="text-align:left;">Tanggal Mulai</th>
+                <th style="text-align:left;">Status</th>
+                <th style="text-align:center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% recentServices.forEach(function(s, i) { %>
+              <tr>
+                <td style="color:#9ca3af;width:40px;"><%= i + 1 %></td>
+                <% if (isAdmin) { %>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:30px;height:30px;background:var(--unand-green-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--unand-green);flex-shrink:0;">
+                      <%= s.creator_name.charAt(0).toUpperCase() %>
+                    </div>
+                    <span style="font-size:0.85rem;font-weight:500;"><%= s.creator_name %></span>
+                  </div>
+                </td>
+                <% } %>
+                <td>
+                  <span style="font-weight:600;"><%= s.title %></span>
+                </td>
+                <td style="color:#6b7280;">
+                  <div style="display:flex;align-items:center;gap:5px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <%= s.location %>
+                  </div>
+                </td>
+                <td style="color:#6b7280;"><%= new Date(s.start_date).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}) %></td>
+                <td>
+                  <% if (s.status === 'proposed') { %>
+                    <span class="badge-proposed">Diusulkan</span>
+                  <% } else if (s.status === 'ongoing') { %>
+                    <span class="badge-ongoing">Berjalan</span>
+                  <% } else { %>
+                    <span class="badge-completed">Selesai</span>
+                  <% } %>
+                </td>
+                <td style="text-align:center;">
+                  <a href="/pengabdian/<%= s.id %>" style="color:var(--unand-green);font-size:0.8rem;font-weight:600;text-decoration:none;">Detail &rarr;</a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <div class="unand-card-footer">
+          <a href="/pengabdian" style="color:var(--unand-green);font-size:0.85rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+            Lihat Semua Pengabdian
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+        <% } %>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/assets/js/basecoat.js" defer></script>
+  <script src="/assets/js/sidebar.js" defer></script>
+  <script src="/assets/js/popover.js" defer></script>
+  <script src="/assets/js/toast.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+      var currentPath = window.location.pathname.replace(/\/$/, "");
+      sidebar.querySelectorAll("a").forEach(function(a) {
+        var href = a.getAttribute("href");
+        if (!href) return;
+        try {
+          var url = new URL(href, window.location.origin);
+          if (url.pathname.replace(/\/$/, "") === currentPath)
+            a.setAttribute("aria-current", "page");
+        } catch(_) {}
+      });
+    });
+  </script>
+
+</body>
+</html>

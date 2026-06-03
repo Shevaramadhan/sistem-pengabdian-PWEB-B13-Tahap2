@@ -12,7 +12,7 @@ const { notFoundHandler, errorHandler } = require('./middlewares/error');
 
 var app = express();
 
-// view engine setup
+// View engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
@@ -31,23 +31,29 @@ const sessionStore = new MySQLStore({
 });
 
 app.use(session({
-  key: 'session_cookie_name',
-  secret: process.env.SESSION_SECRET || 'secret',
+  key: 'pengabdian_session',
+  secret: process.env.SESSION_SECRET || 'rahasia_session_pengabdian',
   store: sessionStore,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 // 1 day
+    maxAge: 1000 * 60 * 60 * 24 // 1 hari
   }
 }));
 
+// ─── Global locals: inject user session ke semua EJS views ───
+app.use((req, res, next) => {
+  res.locals.user = req.session.user || null;
+  res.locals.isAuthenticated = !!req.session.userId;
+  next();
+});
+
+// ─── Routes ───
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-// catch 404 and forward to error handler
+// ─── Error Handlers ───
 app.use(notFoundHandler);
-
-// error handler
 app.use(errorHandler);
 
 module.exports = app;

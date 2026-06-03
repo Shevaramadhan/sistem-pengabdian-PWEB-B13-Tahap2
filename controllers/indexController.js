@@ -16,7 +16,6 @@ const home = async (req, res, next) => {
     let stats, recentServices, pendingInvitations = 0, totalDosen = 0;
 
     if (isAdmin) {
-      // ADMIN: tampilkan statistik GLOBAL semua pengabdian
       const [[globalStats]] = await db.query(
         `SELECT COUNT(*) AS total,
           SUM(status = 'proposed')  AS proposed,
@@ -31,13 +30,11 @@ const home = async (req, res, next) => {
         completed: globalStats.completed || 0,
       };
 
-      // Jumlah dosen terdaftar
       const [[dosenCount]] = await db.query(
         `SELECT COUNT(*) AS cnt FROM lecturers`
       );
       totalDosen = dosenCount.cnt || 0;
 
-      // 5 pengabdian terbaru dari SEMUA dosen
       const [allRecent] = await db.query(
         `SELECT cs.id, cs.title, cs.location, cs.start_date, cs.status,
                 u.name AS creator_name
@@ -48,7 +45,6 @@ const home = async (req, res, next) => {
       recentServices = allRecent;
 
     } else {
-      // DOSEN: tampilkan statistik MILIK SENDIRI
       const [[myStats]] = await db.query(
         `SELECT COUNT(*) AS total,
           SUM(status = 'proposed')  AS proposed,
@@ -64,7 +60,6 @@ const home = async (req, res, next) => {
         completed: myStats.completed || 0,
       };
 
-      // Undangan keanggotaan pending
       if (lecturerId) {
         const [[inv]] = await db.query(
           `SELECT COUNT(*) AS cnt FROM community_service_members
@@ -74,7 +69,6 @@ const home = async (req, res, next) => {
         pendingInvitations = inv.cnt || 0;
       }
 
-      // 5 pengabdian terbaru MILIK SENDIRI
       const [myRecent] = await db.query(
         `SELECT id, title, location, start_date, status
          FROM community_services

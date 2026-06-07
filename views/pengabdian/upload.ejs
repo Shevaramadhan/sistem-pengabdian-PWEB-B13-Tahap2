@@ -1,0 +1,76 @@
+<div class="breadcrumb">
+  <a href="/pengabdian">Daftar Pengabdian</a>
+  <span>/</span>
+  <a href="/pengabdian/<%= service.id %>"><%= service.title %></a>
+  <span>/</span>
+  <span>Upload Laporan</span>
+</div>
+
+<div class="page-card" style="max-width: 600px;">
+  <div class="page-card-header">
+    <div>
+      <h2>Upload Laporan Hasil Pengabdian</h2>
+      <p>Upload file laporan akhir kegiatan ini (PDF, DOC, XLSX, maks 10 MB).</p>
+    </div>
+  </div>
+  
+  <div class="page-card-body">
+    <!-- Info pengabdian -->
+    <div style="background: var(--ug-p); border: 1px solid #b5d9c4; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.85rem;">
+      <div style="font-weight: 600; color: var(--ug); margin-bottom: 2px;"><%= service.title %></div>
+      <div style="color: #4a7a5e;"><%= service.location %> &bull; <%= new Date(service.start_date).toLocaleDateString('id-ID') %></div>
+    </div>
+
+    <!-- File laporan saat ini -->
+    <% if (service.report_file) { %>
+      <div class="flash-success" style="margin-bottom: 16px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <div>
+          <span style="font-weight: 600;">Laporan saat ini:</span>
+          <a href="/uploads/laporan/<%= service.report_file %>" target="_blank" style="color: var(--ug); text-decoration: underline; margin-left: 4px;"><%= service.report_file %></a>
+          <div style="font-size: 0.75rem; color: #4a7a5e; margin-top: 2px;">Upload baru akan menggantikan file ini.</div>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Error -->
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="flash-error"><%= error %></div>
+    <% } %>
+
+    <form action="/pengabdian/<%= service.id %>/upload" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label" for="report_file">Pilih File Laporan</label>
+        <input type="file" id="report_file" name="report_file" class="form-input" accept=".pdf,.doc,.docx,.xlsx,.xls" required style="padding: 6px 12px; cursor: pointer;">
+        <div class="form-hint">Format yang didukung: PDF, DOC, DOCX, XLS, XLSX. Ukuran maksimal 10 MB.</div>
+      </div>
+
+      <!-- Preview nama file yang dipilih -->
+      <div id="filePreview" style="display: none; background: #f0f4f2; border-radius: 8px; padding: 10px 14px; margin-top: 4px; font-size: 0.82rem; color: #374151;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ug)" stroke-width="2" style="display: inline; vertical-align: middle;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>
+        <span id="fileName" style="margin-left: 6px; vertical-align: middle; font-weight: 500;"></span>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-border">
+        <a href="/pengabdian/<%= service.id %>" class="btn-ghost-sm" style="padding: 10px 20px;">Batal</a>
+        <button type="submit" class="btn-primary" id="submitBtn" style="padding: 10px 24px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+          Upload Laporan
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('report_file').addEventListener('change', function(e) {
+    const preview = document.getElementById('filePreview');
+    const nameSpan = document.getElementById('fileName');
+    if (this.files.length > 0) {
+      nameSpan.textContent = this.files[0].name + ' (' + (this.files[0].size / 1024 / 1024).toFixed(2) + ' MB)';
+      preview.style.display = 'block';
+    } else {
+      preview.style.display = 'none';
+    }
+  });
+</script>

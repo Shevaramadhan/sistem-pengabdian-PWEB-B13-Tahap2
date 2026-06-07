@@ -1,0 +1,82 @@
+<div class="breadcrumb">
+  <a href="/undangan">Keanggotaan</a>
+  <span>/</span>
+  <span>Undangan</span>
+</div>
+
+<div class="page-card mb-6">
+  <div class="page-card-header">
+    <div>
+      <h2>Daftar Undangan Keanggotaan</h2>
+      <p>Kelola undangan untuk bergabung dalam tim pengabdian.</p>
+    </div>
+  </div>
+  
+  <div class="page-card-body">
+    <!-- Flash Messages -->
+    <% if (typeof req !== 'undefined' && req.query && req.query.success) { %>
+      <div class="flash-success">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>Status undangan berhasil diperbarui.</span>
+      </div>
+    <% } %>
+
+    <% if (invitations && invitations.length > 0) { %>
+      <div style="overflow-x: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Pengabdian</th>
+              <th>Dosen Pengusul</th>
+              <th>Peran Anda</th>
+              <th>Status</th>
+              <th style="text-align: center;">Tanggal Undangan</th>
+              <th style="text-align: center;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% invitations.forEach(inv => { %>
+              <tr>
+                <td>
+                  <div style="font-weight: 500; color: var(--u-text);"><%= inv.service_title %></div>
+                  <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;"><%= inv.location %> &bull; <%= new Date(inv.start_date).toLocaleDateString('id-ID') %></div>
+                </td>
+                <td><%= inv.creator_name %></td>
+                <td><span style="font-weight: 500;"><%= inv.member_role %></span></td>
+                <td>
+                  <% if (inv.status === 'pending') { %>
+                    <span class="badge b-proposed">Menunggu</span>
+                  <% } else if (inv.status === 'approved') { %>
+                    <span class="badge b-ongoing">Disetujui</span>
+                  <% } else if (inv.status === 'rejected') { %>
+                    <span class="badge" style="background:#fef2f2; color:#dc2626; border:1px solid #fca5a5;">Ditolak</span>
+                  <% } %>
+                </td>
+                <td style="text-align: center; color: #6b7280;"><%= new Date(inv.created_at).toLocaleDateString('id-ID') %></td>
+                <td style="text-align: center;">
+                  <% if (inv.status === 'pending') { %>
+                    <div style="display: flex; gap: 4px; justify-content: center;">
+                      <!-- Fitur 17 (Approve/Reject) adalah tugas Athaya, ini hanya mock tombol -->
+                      <button class="btn-ghost-sm" style="color: #006B35; border-color: #b5d9c4; background: #e8f5ed;" onclick="alert('Fitur Approve (Tugas Athaya)')">Terima</button>
+                      <button class="btn-ghost-sm" style="color: #dc2626; border-color: #fca5a5; background: #fef2f2;" onclick="alert('Fitur Reject (Tugas Athaya)')">Tolak</button>
+                    </div>
+                  <% } else { %>
+                    <span class="text-xs text-muted-foreground">Telah diproses</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ug)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"/></svg>
+        </div>
+        <h3>Belum Ada Undangan</h3>
+        <p>Saat ini Anda belum menerima undangan untuk bergabung ke tim pengabdian mana pun.</p>
+      </div>
+    <% } %>
+  </div>
+</div>

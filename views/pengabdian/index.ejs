@@ -1,0 +1,135 @@
+<div class="page-card">
+  <div class="page-card-header">
+    <div>
+      <h2>Daftar Pengabdian</h2>
+      <p>Kelola data pengabdian kepada masyarakat.</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <a href="/pengabdian/export/excel<%= search ? '?search=' + search : '' %>" class="btn-ghost-sm" style="color: #15803d; border-color: #bbf7d0; background: #f0fdf4;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        Export Excel
+      </a>
+      <a href="/pengabdian/export/pdf<%= search ? '?search=' + search : '' %>" target="_blank" class="btn-ghost-sm" style="color: #b91c1c; border-color: #fecaca; background: #fef2f2;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        Cetak PDF
+      </a>
+      <% if (!isAdmin) { %>
+        <a href="/pengabdian/create" class="btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/><path d="M12 5v14"/>
+          </svg>
+          Tambah Baru
+        </a>
+      <% } %>
+    </div>
+  </div>
+
+
+  <div class="page-card-body">
+    <!-- Flash Messages -->
+    <% if (typeof req !== 'undefined' && req.query && req.query.success) { %>
+      <div class="flash-success">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>Data berhasil disimpan.</span>
+      </div>
+    <% } %>
+
+    <!-- Search Form -->
+    <form action="/pengabdian" method="GET" class="search-bar mb-4">
+      <div class="search-wrap flex-1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" name="search" value="<%= search || '' %>" placeholder="Cari judul atau lokasi..." class="search-input w-full">
+      </div>
+      <button type="submit" class="btn-ghost-sm" style="padding: 8px 16px;">Cari</button>
+      <% if (search) { %>
+        <a href="/pengabdian" class="btn-ghost-sm text-muted-foreground">Reset</a>
+      <% } %>
+    </form>
+
+    <% if (services && services.length > 0) { %>
+      <div style="overflow-x: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Judul Pengabdian</th>
+              <th>Lokasi</th>
+              <th>Tanggal</th>
+              <th>Status</th>
+              <th style="text-align: center;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% services.forEach((service, index) => { %>
+              <tr>
+                <td style="color: #9ca3af;"><%= (pagination.page - 1) * pagination.limit + index + 1 %></td>
+                <td>
+                  <div style="font-weight: 500; color: var(--u-text); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<%= service.title %>">
+                    <%= service.title %>
+                  </div>
+                  <% if (isAdmin) { %>
+                    <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">Oleh: <%= service.creator_name %></div>
+                  <% } %>
+                </td>
+                <td><%= service.location %></td>
+                <td style="white-space: nowrap;"><%= new Date(service.start_date).toLocaleDateString('id-ID') %></td>
+                <td>
+                  <% if (service.status === 'proposed') { %>
+                    <span class="badge b-proposed">Diusulkan</span>
+                  <% } else if (service.status === 'ongoing') { %>
+                    <span class="badge b-ongoing">Berjalan</span>
+                  <% } else { %>
+                    <span class="badge b-completed">Selesai</span>
+                  <% } %>
+                </td>
+                <td style="text-align: center; white-space: nowrap;">
+                  <a href="/pengabdian/<%= service.id %>" class="btn-ghost-sm" title="Lihat Detail">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </a>
+                  <% if (isAdmin || service.created_by === locals.user?.id) { %>
+                    <a href="/pengabdian/<%= service.id %>/edit" class="btn-ghost-sm" title="Edit">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                    </a>
+                    <form action="/pengabdian/<%= service.id %>/delete" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
+                      <button type="submit" class="btn-ghost-sm" style="color: #dc2626;" title="Hapus">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                      </button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <% if (pagination.totalPages > 1) { %>
+        <div class="mt-6 flex justify-between items-center">
+          <div class="text-sm text-muted-foreground">
+            Menampilkan <%= (pagination.page - 1) * pagination.limit + 1 %> - <%= Math.min(pagination.page * pagination.limit, pagination.total) %> dari <%= pagination.total %> data
+          </div>
+          <div class="pagination">
+            <a href="/pengabdian?page=<%= pagination.page - 1 %><%= search ? '&search=' + search : '' %>" class="pg-btn" <%= pagination.page <= 1 ? 'disabled' : '' %>>&laquo;</a>
+            <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+              <a href="/pengabdian?page=<%= i %><%= search ? '&search=' + search : '' %>" class="pg-btn <%= i === pagination.page ? 'active' : '' %>"><%= i %></a>
+            <% } %>
+            <a href="/pengabdian?page=<%= pagination.page + 1 %><%= search ? '&search=' + search : '' %>" class="pg-btn" <%= pagination.page >= pagination.totalPages ? 'disabled' : '' %>>&raquo;</a>
+          </div>
+        </div>
+      <% } %>
+
+    <% } else { %>
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ug)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <h3>Belum Ada Data</h3>
+        <p>Tidak ada data pengabdian yang sesuai dengan kriteria.</p>
+        <% if (!isAdmin && !search) { %>
+          <a href="/pengabdian/create" class="btn-primary">Tambah Pengabdian Pertama</a>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+</div>

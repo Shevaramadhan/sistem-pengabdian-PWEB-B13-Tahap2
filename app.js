@@ -5,16 +5,24 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
 var MySQLStore = require('express-mysql-session')(session);
+var ejsLayouts = require('express-ejs-layouts');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var pengabdianRouter = require('./routes/pengabdian');
+var undanganRouter = require('./routes/undangan');
 const { notFoundHandler, errorHandler } = require('./middlewares/error');
+
+
 
 var app = express();
 
 // View engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+app.use(ejsLayouts);
+app.set('layout', false); // Matikan layout global — tiap view yang butuh layout set sendiri
+
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -41,16 +49,21 @@ app.use(session({
   }
 }));
 
-// ─── Global locals: inject user session ke semua EJS views ───
+// ─── Global locals: inject user session dan req ke semua EJS views ───
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
   res.locals.isAuthenticated = !!req.session.userId;
+  res.locals.req = req; // Agar views bisa baca req.query
   next();
 });
 
 // ─── Routes ───
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/pengabdian', pengabdianRouter);
+app.use('/undangan', undanganRouter);
+
+
 
 // ─── Error Handlers ───
 app.use(notFoundHandler);

@@ -1,0 +1,77 @@
+<div class="breadcrumb">
+  <a href="/pengabdian">Daftar Pengabdian</a>
+  <span>/</span>
+  <span>Tambah Baru</span>
+</div>
+
+<div class="page-card mb-6" style="max-width: 800px;">
+  <div class="page-card-header">
+    <div>
+      <h2>Usulkan Pengabdian</h2>
+      <p>Isi form di bawah ini untuk menambahkan data pengabdian baru.</p>
+    </div>
+  </div>
+  
+  <div class="page-card-body">
+    <!-- Error Messages -->
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div class="flash-error">
+        <ul>
+          <% errors.forEach(err => { %>
+            <li><%= err %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <form action="/pengabdian" method="POST">
+      <div class="form-group">
+        <label class="form-label" for="title">Judul Pengabdian</label>
+        <input type="text" id="title" name="title" class="form-input" value="<%= locals.old?.title || '' %>" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="description">Deskripsi / Ringkasan</label>
+        <textarea id="description" name="description" class="form-input" rows="4"><%= locals.old?.description || '' %></textarea>
+        <div class="form-hint">Penjelasan singkat mengenai kegiatan pengabdian ini.</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="location">Lokasi Pelaksanaan</label>
+        <input type="text" id="location" name="location" class="form-input" value="<%= locals.old?.location || '' %>" required>
+      </div>
+      
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="start_date">Tanggal Mulai</label>
+          <input type="date" id="start_date" name="start_date" class="form-input" value="<%= locals.old?.start_date || '' %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="end_date">Tanggal Selesai</label>
+          <input type="date" id="end_date" name="end_date" class="form-input" value="<%= locals.old?.end_date || '' %>">
+          <div class="form-hint">Kosongkan jika kegiatan masih berlangsung.</div>
+        </div>
+      </div>
+      
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="funding_source">Sumber Pendanaan</label>
+          <input type="text" id="funding_source" name="funding_source" class="form-input" value="<%= locals.old?.funding_source || '' %>" placeholder="Misal: DIPA UNAND">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="status">Status</label>
+          <select id="status" name="status" class="form-input" required>
+            <option value="proposed" <%= locals.old?.status === 'proposed' ? 'selected' : '' %>>Diusulkan (Proposed)</option>
+            <option value="ongoing" <%= locals.old?.status === 'ongoing' ? 'selected' : '' %>>Sedang Berjalan (Ongoing)</option>
+            <option value="completed" <%= locals.old?.status === 'completed' ? 'selected' : '' %>>Selesai (Completed)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-border">
+        <a href="/pengabdian" class="btn-ghost-sm" style="padding: 10px 20px;">Batal</a>
+        <button type="submit" class="btn-primary" style="padding: 10px 24px;">Simpan Pengabdian</button>
+      </div>
+    </form>
+  </div>
+</div>

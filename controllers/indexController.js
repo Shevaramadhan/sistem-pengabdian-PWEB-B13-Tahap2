@@ -80,6 +80,7 @@ const home = async (req, res, next) => {
     }
 
     res.render("dashboard", {
+      layout: "layouts/app",
       pageTitle: "Dashboard",
       user: req.session.user,
       isAdmin,

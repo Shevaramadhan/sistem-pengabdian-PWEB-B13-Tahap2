@@ -51,6 +51,8 @@ app.use((req, res, next) => {
 // ─── Routes ───
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/pengabdian', require('./routes/pengabdian'));
+
 
 // ─── Error Handlers ───
 app.use(notFoundHandler);

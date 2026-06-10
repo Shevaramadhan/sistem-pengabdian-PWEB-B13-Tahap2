@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+          document.documentElement.classList.add("dark");
+      } catch (_) {}
+      document.addEventListener("basecoat:theme", (e) => {
+        const mode = e.detail?.mode;
+        const dark = mode === "dark" ? true : mode === "light" ? false : !document.documentElement.classList.contains("dark");
+        document.documentElement.classList.toggle("dark", dark);
+        try { localStorage.setItem("themeMode", dark ? "dark" : "light"); } catch (_) {}
+      });
+    })();
+    (function () {
+      try {
+        const t = localStorage.getItem("themeVariant");
+        if (t) document.documentElement.classList.add(`theme-${t}`);
+      } catch (_) {}
+    })();
+  </script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Daftar Pengabdian — Sistem Pengabdian UNAND</title>
+  <meta name="description" content="Daftar Pengabdian Dosen Universitas Andalas"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/assets/styles.css"/>
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+  <style>
+    :root {
+      --unand-green:       #006B35;
+      --unand-green-light: #1a8a4a;
+      --unand-green-pale:  #e8f5ed;
+      --unand-gold:        #C8A951;
+      --unand-gold-dark:   #96782e;
+      --unand-gold-pale:   #fdf8ec;
+    }
+    body { font-family: 'Inter', sans-serif; }
+
+    /* ── Stat cards ── */
+    .stat-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      border: 1px solid #e8edf0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .stat-card:hover { box-shadow: 0 4px 16px rgba(0,107,53,0.12); transform: translateY(-1px); }
+    .dark .stat-card { background: #1e2a24; border-color: #2d3f35; }
+    .stat-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1; color: #1f2937; }
+    .dark .stat-value { color: #f3f4f6; }
+    .stat-label { font-size: 0.75rem; color: #6b7280; margin-top: 2px; }
+    .dark .stat-label { color: #9ca3af; }
+
+    /* ── Filter Area ── */
+    .filter-card {
+      background: #fff;
+      border: 1px solid #e8edf0;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    .dark .filter-card { background: #1e2a24; border-color: #2d3f35; }
+
+    /* Input premium */
+    .premium-input {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background-color: #fff;
+      color: #1f2937;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .premium-input:focus {
+      outline: none;
+      border-color: var(--unand-green);
+      box-shadow: 0 0 0 3px rgba(0, 107, 53, 0.15);
+    }
+    .dark .premium-input {
+      background-color: #121b16;
+      border-color: #2d3f35;
+      color: #f3f4f6;
+    }
+    .dark .premium-input:focus {
+      border-color: var(--unand-gold);
+      box-shadow: 0 0 0 3px rgba(200, 169, 81, 0.2);
+    }
+
+    /* ── Table / Hybrid Card Style ── */
+    .unand-card {
+      background: #fff;
+      border: 1px solid #e8edf0;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .dark .unand-card { background: #1e2a24; border-color: #2d3f35; }
+    .unand-card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid #f0f4f2;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .dark .unand-card-header { border-color: #2d3f35; }
+    .unand-card-header h2 { font-size: 1rem; font-weight: 600; color: var(--unand-green); margin: 0; }
+    .dark .unand-card-header h2 { color: #86c99e; }
+    .unand-card-header p { font-size: 0.8rem; color: #6b7280; margin: 4px 0 0; }
+    .dark .unand-card-header p { color: #9ca3af; }
+
+    /* ── Badges ── */
+    .badge-proposed { background: #fef9ec; color: #92400e; border: 1px solid #fde68a; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-verified { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-ongoing  { background: var(--unand-green-pale); color: var(--unand-green); border: 1px solid #a7d7b5; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-completed { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
+    
+    .dark .badge-proposed { background: #1f1700; color: #d4a437; border-color: #3a2e10; }
+    .dark .badge-verified { background: #08211b; color: #2dd4bf; border-color: #115e59; }
+    .dark .badge-ongoing  { background: #0b1f14; color: #5dbf85; border-color: #1a4028; }
+    .dark .badge-completed { background: #0f1825; color: #60a5fa; border-color: #1e3a6e; }
+
+    .badge-pdf-yes { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; padding: 1px 6px; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
+    .badge-pdf-no  { background: #f3f4f6; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 6px; padding: 1px 6px; font-size: 0.7rem; font-weight: 500; display: inline-flex; align-items: center; }
+    .dark .badge-pdf-yes { background: #2d1010; color: #f87171; border-color: #7f1d1d; }
+    .dark .badge-pdf-no { background: #18221c; color: #4b5563; border-color: #2d3f35; }
+
+    /* ── Table styling ── */
+    .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .data-table thead th {
+      background: var(--unand-green-pale);
+      color: var(--unand-green);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 16px;
+      border-bottom: 2px solid #d1e8d9;
+    }
+    .dark .data-table thead th { background: #1e2a24; color: #86c99e; border-color: #2d3f35; }
+    .data-table tbody td { padding: 14px 16px; border-bottom: 1px solid #f0f4f2; font-size: 0.875rem; vertical-align: middle; }
+    .dark .data-table tbody td { border-color: #2d3f35; color: #d1e0d8; }
+    .data-table tbody tr:hover td { background: var(--unand-green-pale); }
+    .dark .data-table tbody tr:hover td { background: rgba(30,42,36,0.6); }
+
+    /* ── Pagination styling ── */
+    .pag-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 6px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #374151;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .pag-btn:hover { background: #f3f4f6; border-color: #9ca3af; }
+    .pag-btn.active {
+      background: var(--unand-green);
+      color: #fff;
+      border-color: var(--unand-green);
+    }
+    .pag-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .dark .pag-btn { background: #1e2a24; border-color: #2d3f35; color: #d1e0d8; }
+    .dark .pag-btn:hover { background: #26362e; border-color: #4a6353; }
+    .dark .pag-btn.active { background: var(--unand-green); color: #fff; border-color: var(--unand-green); }
+
+    .empty-title { color: #374151; }
+    .empty-desc { color: #9ca3af; }
+    .dark .empty-title { color: #d1e0d8; }
+    .dark .empty-desc { color: #8c9c91; }
+  </style>
+</head>
+<body>
+
+  <%- include('../partials/sidebar') %>
+
+  <main id="content">
+    <%- include('../partials/topbar', { pageTitle: 'Daftar Pengabdian' }) %>
+
+    <div class="p-4 md:p-6" style="max-width:1280px; margin:0 auto;">
+
+      <!-- SECTION A: Ringkasan Statistik -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
+        <!-- Card Total -->
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f5ed;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--unand-green)" stroke-width="2">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value"><%= stats.total %></div>
+            <div class="stat-label">Total Pengabdian</div>
+          </div>
+        </div>
+
+        <!-- Card Diusulkan -->
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fdf8ec;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--unand-gold)" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" style="color:var(--unand-gold);"><%= stats.proposed %></div>
+            <div class="stat-label">Diusulkan</div>
+          </div>
+        </div>
+
+        <!-- Card Diverifikasi / Berjalan -->
+        <!-- Karena di database kita tambahkan 'verified' dan 'ongoing', 
+             kita hitung status 'verified' + 'ongoing' sebagai status berjalan/aktif atau tampilkan 'ongoing' -->
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdfa;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" style="color:#0f766e;"><%= stats.ongoing %></div>
+            <div class="stat-label">Sedang Berjalan</div>
+          </div>
+        </div>
+
+        <!-- Card Selesai -->
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#eff6ff;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <div>
+            <div class="stat-value" style="color:#2563eb;"><%= stats.completed %></div>
+            <div class="stat-label">Selesai</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION B: Search & Filter Area -->
+      <div class="filter-card">
+        <form method="GET" action="/pengabdian" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;align-items:end;">
+          
+          <!-- Search input -->
+          <div style="grid-column: span 2;">
+            <label style="display:block;font-size:0.75rem;font-weight:600;margin-bottom:6px;text-transform:uppercase;color:#4b5563;" class="dark:text-gray-400">Cari Judul Pengabdian</label>
+            <div style="position:relative;">
+              <input type="text" name="search" value="<%= filters.search %>" placeholder="Cari judul..." class="premium-input" style="padding-left:36px;"/>
+              <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Status -->
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:600;margin-bottom:6px;text-transform:uppercase;color:#4b5563;" class="dark:text-gray-400">Status</label>
+            <select name="status" class="premium-input">
+              <option value="">Semua Status</option>
+              <option value="proposed" <%= filters.status === 'proposed' ? 'selected' : '' %>>Diusulkan</option>
+              <option value="verified" <%= filters.status === 'verified' ? 'selected' : '' %>>Diverifikasi</option>
+              <option value="ongoing" <%= filters.status === 'ongoing' ? 'selected' : '' %>>Berjalan</option>
+              <option value="completed" <%= filters.status === 'completed' ? 'selected' : '' %>>Selesai</option>
+            </select>
+          </div>
+
+          <!-- Filter Tahun -->
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:600;margin-bottom:6px;text-transform:uppercase;color:#4b5563;" class="dark:text-gray-400">Tahun</label>
+            <select name="year" class="premium-input">
+              <option value="">Semua Tahun</option>
+              <% availableYears.forEach(function(yr) { %>
+                <option value="<%= yr %>" <%= String(filters.year) === String(yr) ? 'selected' : '' %>><%= yr %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Sort Order -->
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:600;margin-bottom:6px;text-transform:uppercase;color:#4b5563;" class="dark:text-gray-400">Urutkan</label>
+            <select name="sort" class="premium-input">
+              <option value="newest" <%= filters.sort === 'newest' ? 'selected' : '' %>>Terbaru</option>
+              <option value="oldest" <%= filters.sort === 'oldest' ? 'selected' : '' %>>Terlama</option>
+            </select>
+          </div>
+
+          <!-- Action buttons -->
+          <div style="display:flex;gap:8px;">
+            <button type="submit" style="flex:1;background:var(--unand-green);color:#fff;border-radius:8px;font-size:0.85rem;font-weight:600;height:38px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:background 0.2s;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Filter
+            </button>
+            <a href="/pengabdian" style="background:#f3f4f6;color:#4b5563;border:1px solid #d1d5db;border-radius:8px;font-size:0.85rem;font-weight:600;height:38px;padding:0 12px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:background 0.2s;" class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300">
+              Reset
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- SECTION C: Data Pengabdian (Hybrid Table-Card Design) -->
+      <div class="unand-card">
+        <div class="unand-card-header">
+          <div>
+            <h2><%= isAdmin ? 'Semua Usulan Pengabdian Dosen' : 'Daftar Pengabdian Anda' %></h2>
+            <p>Menampilkan <%= services.length %> dari <%= filters.totalItems %> total kegiatan pengabdian.</p>
+          </div>
+          <% if (!isAdmin) { %>
+          <a href="/pengabdian/create" style="background:var(--unand-green);color:#fff;padding:8px 16px;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background 0.2s;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Tambah Baru
+          </a>
+          <% } %>
+        </div>
+
+        <% if (services.length === 0) { %>
+        <!-- Empty State -->
+        <div style="text-align:center;padding:64px 24px;">
+          <div style="width:72px;height:72px;background:var(--unand-green-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--unand-green)" stroke-width="1.5">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="8" y1="13" x2="16" y2="13"/>
+              <line x1="8" y1="17" x2="14" y2="17"/>
+            </svg>
+          </div>
+          <h3 class="empty-title" style="font-size:1.1rem;font-weight:600;margin:0 0 6px;">Tidak Menemukan Data Pengabdian</h3>
+          <p class="empty-desc" style="font-size:0.88rem;margin:0 0 20px;max-width:320px;margin-left:auto;margin-right:auto;">
+            Coba sesuaikan kata kunci pencarian atau bersihkan filter yang terpasang.
+          </p>
+          <a href="/pengabdian" style="background:var(--unand-green);color:#fff;padding:10px 20px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;display:inline-block;">Reset Pencarian</a>
+        </div>
+        <% } else { %>
+        <!-- Data Table (Hybrid layout) -->
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:40px;text-align:center;">#</th>
+                <% if (isAdmin) { %><th style="text-align:left;">Dosen Ketua</th><% } %>
+                <th style="text-align:left;min-width:250px;">Judul Kegiatan</th>
+                <th style="text-align:left;min-width:140px;">Lokasi & Waktu</th>
+                <th style="text-align:center;width:120px;">Anggota Tim</th>
+                <th style="text-align:center;width:120px;">Proposal</th>
+                <th style="text-align:center;width:120px;">Status</th>
+                <th style="text-align:center;width:100px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% services.forEach(function(s, idx) { %>
+              <tr>
+                <!-- # Index -->
+                <td style="text-align:center;color:#9ca3af;"><%= (filters.page - 1) * 5 + idx + 1 %></td>
+                
+                <!-- Admin Column: Lecturer Name -->
+                <% if (isAdmin) { %>
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:32px;height:32px;background:var(--unand-green-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--unand-green);flex-shrink:0;">
+                      <%= s.creator_name.charAt(0).toUpperCase() %>
+                    </div>
+                    <span style="font-weight:500;font-size:0.85rem;"><%= s.creator_name %></span>
+                  </div>
+                </td>
+                <% } %>
+
+                <!-- Title and details -->
+                <td>
+                  <div style="font-weight:600;color:#111827;line-height:1.4;" class="dark:text-white">
+                    <%= s.title %>
+                  </div>
+                  <% if (s.funding_source) { %>
+                  <div style="font-size:0.75rem;color:#6b7280;margin-top:4px;" class="dark:text-zinc-400">
+                    Sumber: <strong><%= s.funding_source %></strong> &middot; Anggaran: <strong>Rp <%= parseFloat(s.budget).toLocaleString('id-ID') %></strong>
+                  </div>
+                  <% } %>
+                </td>
+
+                <!-- Location & Waktu -->
+                <td style="color:#4b5563;" class="dark:text-zinc-300">
+                  <div style="display:flex;align-items:center;gap:4px;font-size:0.82rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <%= s.location %>
+                  </div>
+                  <div style="font-size:0.75rem;color:#9ca3af;margin-top:2px;">
+                    Mulai: <%= new Date(s.start_date).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}) %>
+                  </div>
+                </td>
+
+                <!-- Member Count -->
+                <td style="text-align:center;font-weight:500;">
+                  <div style="display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;padding:2px 8px;border-radius:6px;font-size:0.8rem;" class="dark:bg-zinc-800 dark:text-zinc-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <%= s.member_count %> Anggota
+                  </div>
+                </td>
+
+                <!-- Proposal Available/Unavailable -->
+                <td style="text-align:center;">
+                  <% if (s.proposal_file) { %>
+                  <span class="badge-pdf-yes">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    PDF
+                  </span>
+                  <% } else { %>
+                  <span class="badge-pdf-no">Kosong</span>
+                  <% } %>
+                </td>
+
+                <!-- Status Badge -->
+                <td style="text-align:center;">
+                  <% if (s.status === 'proposed') { %>
+                    <span class="badge-proposed">Diusulkan</span>
+                  <% } else if (s.status === 'verified') { %>
+                    <span class="badge-verified">Diverifikasi</span>
+                  <% } else if (s.status === 'ongoing') { %>
+                    <span class="badge-ongoing">Berjalan</span>
+                  <% } else if (s.status === 'completed') { %>
+                    <span class="badge-completed">Selesai</span>
+                  <% } %>
+                </td>
+
+                <!-- Action Button -->
+                <td style="text-align:center;">
+                  <a href="/pengabdian/<%= s.id %>" style="display:inline-flex;align-items:center;background:var(--unand-green-pale);color:var(--unand-green);padding:6px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;text-decoration:none;transition:all 0.2s;" class="dark:bg-zinc-800 dark:text-emerald-400 hover:opacity-85">
+                    Detail
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Footer / Pagination -->
+        <% if (filters.totalPages > 1) { %>
+        <div class="unand-card-footer" style="display:flex;align-items:center;justify-content:space-between;padding:12px 24px;">
+          <span style="font-size:0.8rem;color:#6b7280;" class="dark:text-zinc-400">
+            Halaman <strong><%= filters.page %></strong> dari <strong><%= filters.totalPages %></strong>
+          </span>
+          <div style="display:flex;gap:6px;">
+            
+            <%# Previous page link %>
+            <a href="/pengabdian?search=<%= filters.search %>&status=<%= filters.status %>&year=<%= filters.year %>&sort=<%= filters.sort %>&page=<%= filters.page - 1 %>" 
+               class="pag-btn <%= filters.page === 1 ? 'disabled' : '' %>">
+               &larr; Prev
+            </a>
+
+            <%# Page numbers %>
+            <% for (let p = 1; p <= filters.totalPages; p++) { %>
+              <a href="/pengabdian?search=<%= filters.search %>&status=<%= filters.status %>&year=<%= filters.year %>&sort=<%= filters.sort %>&page=<%= p %>" 
+                 class="pag-btn <%= filters.page === p ? 'active' : '' %>">
+                 <%= p %>
+              </a>
+            <% } %>
+
+            <%# Next page link %>
+            <a href="/pengabdian?search=<%= filters.search %>&status=<%= filters.status %>&year=<%= filters.year %>&sort=<%= filters.sort %>&page=<%= filters.page + 1 %>" 
+               class="pag-btn <%= filters.page === filters.totalPages ? 'disabled' : '' %>">
+               Next &rarr;
+            </a>
+
+          </div>
+        </div>
+        <% } %>
+        <% } %>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/assets/js/basecoat.js" defer></script>
+  <script src="/assets/js/sidebar.js" defer></script>
+  <script src="/assets/js/dropdown-menu.js" defer></script>
+  <script src="/assets/js/popover.js" defer></script>
+  <script src="/assets/js/toast.js" defer></script>
+</body>
+</html>

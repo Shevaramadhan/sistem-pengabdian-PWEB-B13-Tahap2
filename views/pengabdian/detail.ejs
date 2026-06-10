@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+          document.documentElement.classList.add("dark");
+      } catch (_) {}
+      document.addEventListener("basecoat:theme", (e) => {
+        const mode = e.detail?.mode;
+        const dark = mode === "dark" ? true : mode === "light" ? false : !document.documentElement.classList.contains("dark");
+        document.documentElement.classList.toggle("dark", dark);
+        try { localStorage.setItem("themeMode", dark ? "dark" : "light"); } catch (_) {}
+      });
+    })();
+    (function () {
+      try {
+        const t = localStorage.getItem("themeVariant");
+        if (t) document.documentElement.classList.add(`theme-${t}`);
+      } catch (_) {}
+    })();
+  </script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Detail Pengabdian — Sistem Pengabdian UNAND</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/assets/styles.css"/>
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+  <style>
+    :root {
+      --unand-green:       #006B35;
+      --unand-green-light: #1a8a4a;
+      --unand-green-pale:  #e8f5ed;
+      --unand-gold:        #C8A951;
+      --unand-gold-dark:   #96782e;
+      --unand-gold-pale:   #fdf8ec;
+    }
+    body { font-family: 'Inter', sans-serif; }
+
+    /* ── Hero Section ── */
+    .hero-banner {
+      background: linear-gradient(135deg, #006B35 0%, #004d26 50%, #172119 100%);
+      border-radius: 16px;
+      padding: 32px;
+      color: #fff;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 107, 53, 0.15);
+    }
+    .hero-banner::after {
+      content: '';
+      position: absolute; right: -20px; top: -20px;
+      width: 180px; height: 180px;
+      background: rgba(200, 169, 81, 0.1);
+      border-radius: 50%;
+    }
+
+    /* ── Cards ── */
+    .unand-card {
+      background: #fff;
+      border: 1px solid #e8edf0;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+      transition: all 0.25s ease;
+    }
+    .unand-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .dark .unand-card { background: #1e2a24; border-color: #2d3f35; }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--unand-green);
+      margin-top: 0;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #f0f4f2;
+      padding-bottom: 8px;
+    }
+    .dark .card-title { color: #86c99e; border-color: #2d3f35; }
+
+    /* ── Timeline horizontal ── */
+    .timeline-steps {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      margin: 20px 0;
+    }
+    .timeline-line {
+      position: absolute;
+      top: 15px; left: 0; right: 0;
+      height: 4px;
+      background: #e5e7eb;
+      z-index: 1;
+    }
+    .dark .timeline-line { background: #2d3f35; }
+    .timeline-line-active {
+      position: absolute;
+      top: 15px; left: 0;
+      height: 4px;
+      background: var(--unand-green);
+      z-index: 2;
+      transition: width 0.4s ease;
+    }
+    .timeline-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 3;
+      flex: 1;
+    }
+    .timeline-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid #d1d5db;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem; color: #9ca3af;
+      transition: all 0.3s;
+    }
+    .dark .timeline-dot { background: #121b16; border-color: #2d3f35; }
+    .timeline-step.active .timeline-dot {
+      border-color: var(--unand-green);
+      background: var(--unand-green);
+      color: #fff;
+    }
+    .timeline-step.current .timeline-dot {
+      border-color: var(--unand-gold);
+      background: var(--unand-green);
+      color: #fff;
+      box-shadow: 0 0 0 4px rgba(200, 169, 81, 0.25);
+    }
+    .timeline-label {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #4b5563;
+      text-align: center;
+    }
+    .dark .timeline-label { color: #d1e0d8; }
+    .timeline-step.active .timeline-label { color: var(--unand-green); font-weight: 700; }
+    .dark .timeline-step.active .timeline-label { color: #86c99e; }
+
+    /* ── Status badges ── */
+    .badge-proposed { background: #fef9ec; color: #92400e; border: 1px solid #fde68a; border-radius: 999px; padding: 4px 12px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; }
+    .badge-verified { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 999px; padding: 4px 12px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; }
+    .badge-ongoing  { background: var(--unand-green-pale); color: var(--unand-green); border: 1px solid #a7d7b5; border-radius: 999px; padding: 4px 12px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; }
+    .badge-completed { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; border-radius: 999px; padding: 4px 12px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; }
+    
+    .dark .badge-proposed { background: #1f1700; color: #d4a437; border-color: #3a2e10; }
+    .dark .badge-verified { background: #08211b; color: #2dd4bf; border-color: #115e59; }
+    .dark .badge-ongoing  { background: #0b1f14; color: #5dbf85; border-color: #1a4028; }
+    .dark .badge-completed { background: #0f1825; color: #60a5fa; border-color: #1e3a6e; }
+
+    .badge-member-pending { background: #fef3c7; color: #d97706; border-radius: 6px; padding: 2px 8px; font-size: 0.72rem; font-weight: 500; }
+    .badge-member-approved { background: #d1fae5; color: #059669; border-radius: 6px; padding: 2px 8px; font-size: 0.72rem; font-weight: 500; }
+    .badge-member-rejected { background: #fee2e2; color: #dc2626; border-radius: 6px; padding: 2px 8px; font-size: 0.72rem; font-weight: 500; }
+    .dark .badge-member-pending { background: #271a0c; color: #fbbf24; }
+    .dark .badge-member-approved { background: #062419; color: #34d399; }
+    .dark .badge-member-rejected { background: #2a0c0c; color: #f87171; }
+  </style>
+</head>
+<body>
+
+  <%- include('../partials/sidebar') %>
+
+  <main id="content">
+    <%- include('../partials/topbar', { pageTitle: 'Detail Pengabdian' }) %>
+
+    <div class="p-4 md:p-6" style="max-width:1280px; margin:0 auto;">
+
+      <!-- Header Hero Section -->
+      <div class="hero-banner">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+          <div style="flex:1; min-width:280px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+              <span style="font-size:0.75rem; text-transform:uppercase; background:rgba(255,255,255,0.15); padding:3px 10px; border-radius:6px; font-weight:600; letter-spacing:0.05em;">
+                Tahun <%= new Date(service.start_date).getFullYear() %>
+              </span>
+              <span style="display:inline-flex; align-items:center; gap:4px; font-size:0.75rem; color:rgba(255,255,255,0.8);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                <%= service.location %>
+              </span>
+            </div>
+            <h1 style="font-size:1.6rem; font-weight:700; margin:0 0 12px; line-height:1.3; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"><%= service.title %></h1>
+            <p style="margin:0; font-size:0.9rem; color:rgba(255,255,255,0.85);">
+              Ketua Pengusul: <strong><%= service.creator_name %></strong>
+            </p>
+          </div>
+
+          <!-- Status badge -->
+          <div style="flex-shrink:0;">
+            <% if (service.status === 'proposed') { %>
+              <span class="badge-proposed" style="font-size:0.9rem; padding:6px 16px;">Status: Diusulkan</span>
+            <% } else if (service.status === 'verified') { %>
+              <span class="badge-verified" style="font-size:0.9rem; padding:6px 16px;">Status: Terverifikasi</span>
+            <% } else if (service.status === 'ongoing') { %>
+              <span class="badge-ongoing" style="font-size:0.9rem; padding:6px 16px;">Status: Berjalan</span>
+            <% } else if (service.status === 'completed') { %>
+              <span class="badge-completed" style="font-size:0.9rem; padding:6px 16px;">Status: Selesai</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail Grid Layout -->
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; align-items:start;" class="grid-cols-1 md:grid-cols-3">
+        
+        <!-- Kolom Kiri (Detail Utama) -->
+        <div style="grid-column: span 1;" class="md:col-span-2">
+          
+          <!-- Card Informasi Kegiatan -->
+          <div class="unand-card">
+            <h3 class="card-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+              Deskripsi & Informasi Kegiatan
+            </h3>
+            
+            <div style="margin-bottom:18px;">
+              <h4 style="font-size:0.85rem; text-transform:uppercase; color:#9ca3af; margin:0 0 6px; font-weight:600; letter-spacing:0.03em;">Deskripsi Singkat</h4>
+              <p style="font-size:0.9rem; line-height:1.6; color:#374151; margin:0;" class="dark:text-zinc-300">
+                <%= service.description %>
+              </p>
+            </div>
+
+            <div style="margin-bottom:18px;">
+              <h4 style="font-size:0.85rem; text-transform:uppercase; color:#9ca3af; margin:0 0 6px; font-weight:600; letter-spacing:0.03em;">Tujuan Pengabdian</h4>
+              <p style="font-size:0.9rem; line-height:1.6; color:#374151; margin:0;" class="dark:text-zinc-300">
+                <%= service.tujuan || 'Tidak dicantumkan.' %>
+              </p>
+            </div>
+
+            <!-- Detail Grid Info -->
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; border-top:1px solid #f0f4f2; padding-top:16px; margin-top:16px;" class="grid-cols-1 sm:grid-cols-3 dark:border-zinc-800">
+              <div>
+                <span style="font-size:0.75rem; color:#9ca3af; display:block; font-weight:500;">Lokasi Pelaksanaan</span>
+                <span style="font-size:0.9rem; font-weight:600; color:#374151;" class="dark:text-zinc-200"><%= service.location %></span>
+              </div>
+              <div>
+                <span style="font-size:0.75rem; color:#9ca3af; display:block; font-weight:500;">Anggaran Biaya</span>
+                <span style="font-size:0.9rem; font-weight:600; color:#006B35;" class="dark:text-emerald-400">Rp <%= parseFloat(service.budget).toLocaleString('id-ID') %></span>
+              </div>
+              <div>
+                <span style="font-size:0.75rem; color:#9ca3af; display:block; font-weight:500;">Sumber Dana</span>
+                <span style="font-size:0.9rem; font-weight:600; color:#374151;" class="dark:text-zinc-200"><%= service.funding_source %></span>
+              </div>
+            </div>
+
+            <!-- Tanggal Mulai Selesai -->
+            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; background:#f9fafb; padding:12px 16px; border-radius:10px; margin-top:18px;" class="dark:bg-zinc-800/40">
+              <div>
+                <span style="font-size:0.72rem; color:#6b7280; display:block; font-weight:500;">Tanggal Mulai</span>
+                <span style="font-size:0.85rem; font-weight:600; color:#374151;" class="dark:text-zinc-200">
+                  <%= new Date(service.start_date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) %>
+                </span>
+              </div>
+              <div>
+                <span style="font-size:0.72rem; color:#6b7280; display:block; font-weight:500;">Perkiraan Selesai</span>
+                <span style="font-size:0.85rem; font-weight:600; color:#374151;" class="dark:text-zinc-200">
+                  <%= service.end_date ? new Date(service.end_date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) : 'Tentatif' %>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Timeline Tracking -->
+          <div class="unand-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom: 1px solid #f0f4f2; padding-bottom: 8px;" class="dark:border-zinc-800">
+              <h3 class="card-title" style="margin:0; border:none; padding:0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Timeline Status Pengajuan
+              </h3>
+              <a href="/pengabdian/<%= service.id %>/status" style="font-size:0.8rem; color:var(--unand-green); font-weight:600; text-decoration:none; display:flex; align-items:center; gap:2px;">
+                Lacak Detil &rarr;
+              </a>
+            </div>
+
+            <% 
+              // Hitung persentase progress line
+              let progressWidth = '0%';
+              let stepProposed = 'active';
+              let stepVerified = '';
+              let stepOngoing = '';
+              let stepCompleted = '';
+
+              if (service.status === 'proposed') {
+                progressWidth = '0%';
+                stepProposed = 'active current';
+              } else if (service.status === 'verified') {
+                progressWidth = '33.33%';
+                stepProposed = 'active';
+                stepVerified = 'active current';
+              } else if (service.status === 'ongoing') {
+                progressWidth = '66.66%';
+                stepProposed = 'active';
+                stepVerified = 'active';
+                stepOngoing = 'active current';
+              } else if (service.status === 'completed') {
+                progressWidth = '100%';
+                stepProposed = 'active';
+                stepVerified = 'active';
+                stepOngoing = 'active';
+                stepCompleted = 'active current';
+              }
+            %>
+
+            <div class="timeline-steps">
+              <div class="timeline-line"></div>
+              <div class="timeline-line-active" style="width: <%= progressWidth %>;"></div>
+
+              <div class="timeline-step <%= stepProposed %>">
+                <div class="timeline-dot">1</div>
+                <span class="timeline-label">Diusulkan</span>
+              </div>
+              <div class="timeline-step <%= stepVerified %>">
+                <div class="timeline-dot">2</div>
+                <span class="timeline-label">Diverifikasi</span>
+              </div>
+              <div class="timeline-step <%= stepOngoing %>">
+                <div class="timeline-dot">3</div>
+                <span class="timeline-label">Berjalan</span>
+              </div>
+              <div class="timeline-step <%= stepCompleted %>">
+                <div class="timeline-dot">4</div>
+                <span class="timeline-label">Selesai</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kolom Kanan (Informasi Pendukung & Tim) -->
+        <div style="grid-column: span 1;">
+          
+          <!-- Card Proposal File -->
+          <div class="unand-card">
+            <h3 class="card-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+              Proposal PDF
+            </h3>
+            
+            <% if (service.proposal_file) { %>
+              <% 
+                let sizeStr = '0 B';
+                if (service.proposal_file_size) {
+                  if (service.proposal_file_size > 1024 * 1024) {
+                    sizeStr = (service.proposal_file_size / (1024 * 1024)).toFixed(2) + ' MB';
+                  } else {
+                    sizeStr = (service.proposal_file_size / 1024).toFixed(1) + ' KB';
+                  }
+                }
+              %>
+              <div style="display:flex; align-items:center; gap:12px; background:#fef2f2; border:1px solid #fee2e2; border-radius:10px; padding:12px;" class="dark:bg-red-950/20 dark:border-red-900/40">
+                <div style="width:40px; height:40px; background:#ef4444; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-size:0.82rem; font-weight:600; color:#b91c1c; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" class="dark:text-red-400" title="<%= service.proposal_file %>">
+                    <%= service.proposal_file.split('-').slice(2).join('-') || service.proposal_file %>
+                  </div>
+                  <div style="font-size:0.75rem; color:#7f1d1d; margin-top:2px;" class="dark:text-red-300/80">
+                    <%= sizeStr %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Upload Date -->
+              <% if (service.proposal_uploaded_at) { %>
+                <p style="font-size:0.7rem; color:#9ca3af; margin:10px 0 16px;">
+                  Diunggah: <%= new Date(service.proposal_uploaded_at).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) %> WIB
+                </p>
+              <% } %>
+
+              <!-- Action Download -->
+              <a href="/uploads/proposals/<%= service.proposal_file %>" target="_blank" style="background:#dc2626; color:#fff; border-radius:8px; height:36px; font-size:0.82rem; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s;" class="hover:bg-red-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Unduh Proposal
+              </a>
+            <% } else { %>
+              <div style="text-align:center; padding:16px; border: 1px dashed #d1d5db; border-radius:10px; color:#9ca3af; font-size:0.85rem;" class="dark:border-zinc-700">
+                Berkas proposal tidak tersedia.
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Card Tim Pengabdian -->
+          <div class="unand-card">
+            <h3 class="card-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Tim Pengabdian
+            </h3>
+
+            <!-- Ketua (Pembuat) -->
+            <div style="margin-bottom:16px; border-bottom: 1px solid #f0f4f2; padding-bottom: 12px;" class="dark:border-zinc-800">
+              <span style="font-size:0.75rem; text-transform:uppercase; color:#9ca3af; display:block; font-weight:600; margin-bottom:8px; letter-spacing:0.02em;">Ketua Pengusul</span>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:36px; height:36px; background:var(--unand-green-pale); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; color:var(--unand-green); flex-shrink:0;">
+                  <%= service.creator_name.charAt(0).toUpperCase() %>
+                </div>
+                <div style="min-width:0; flex:1;">
+                  <div style="font-size:0.88rem; font-weight:700; color:#111827; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" class="dark:text-white"><%= service.creator_name %></div>
+                  <div style="font-size:0.75rem; color:#6b7280; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" class="dark:text-zinc-400">
+                    <%= creatorProfile && creatorProfile.nidn ? 'NIDN: ' + creatorProfile.nidn : 'Dosen UNAND' %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Anggota (Jika ada) -->
+            <div>
+              <span style="font-size:0.75rem; text-transform:uppercase; color:#9ca3af; display:block; font-weight:600; margin-bottom:8px; letter-spacing:0.02em;">Anggota Tim</span>
+              <% if (members.length === 0) { %>
+                <p style="font-size:0.8rem; color:#9ca3af; margin:0; font-style:italic;">Belum ada anggota tim terpilih.</p>
+              <% } else { %>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                  <% members.forEach(function(m) { %>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                      <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+                        <div style="width:30px; height:30px; background:#f3f4f6; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; color:#6b7280; flex-shrink:0;" class="dark:bg-zinc-800 dark:text-zinc-400">
+                          <%= m.lecturer_name.charAt(0).toUpperCase() %>
+                        </div>
+                        <div style="min-width:0; flex:1;">
+                          <div style="font-size:0.8rem; font-weight:600; color:#374151; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" class="dark:text-zinc-300" title="<%= m.lecturer_name %>"><%= m.lecturer_name %></div>
+                          <div style="font-size:0.7rem; color:#9ca3af; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">NIDN: <%= m.nidn || '-' %></div>
+                        </div>
+                      </div>
+                      <div style="flex-shrink:0;">
+                        <% if (m.status === 'pending') { %>
+                          <span class="badge-member-pending">Pending</span>
+                        <% } else if (m.status === 'approved') { %>
+                          <span class="badge-member-approved">Setuju</span>
+                        <% } else { %>
+                          <span class="badge-member-rejected">Tolak</span>
+                        <% } %>
+                      </div>
+                    </div>
+                  <% }) %>
+                </div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- ADMIN ONLY: PANEL KONTROL STATUS (UAS Presentation Feature) -->
+          <% if (isAdmin) { %>
+          <div class="unand-card dark:bg-amber-950/10 dark:border-amber-900/40" style="border: 1px solid rgba(200, 169, 81, 0.4); background:#fffef9; position:relative; overflow:hidden;">
+            <div style="width:4px; position:absolute; left:0; top:0; bottom:0; background:var(--unand-gold);"></div>
+            <h3 class="card-title" style="color:var(--unand-gold-dark);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+              Admin Control Panel
+            </h3>
+            <p style="font-size:0.75rem; color:#5c543f; margin-bottom:12px;" class="dark:text-amber-200/80">
+              Sebagai Administrator, Anda dapat mematangkan/memproses usulan pengabdian ini untuk keperluan presentasi UAS.
+            </p>
+            <form method="POST" action="/pengabdian/<%= service.id %>/status" style="display:flex; flex-direction:column; gap:10px;">
+              <select name="status" class="premium-input dark:bg-zinc-800 dark:border-zinc-700" style="height:36px; font-size:0.82rem; border-color:#e0cfa0; background:#fff;">
+                <option value="proposed" <%= service.status === 'proposed' ? 'selected' : '' %>>Diusulkan (Proposed)</option>
+                <option value="verified" <%= service.status === 'verified' ? 'selected' : '' %>>Diverifikasi (Verified)</option>
+                <option value="ongoing" <%= service.status === 'ongoing' ? 'selected' : '' %>>Berjalan (Ongoing)</option>
+                <option value="completed" <%= service.status === 'completed' ? 'selected' : '' %>>Selesai (Completed)</option>
+              </select>
+              <button type="submit" style="background:var(--unand-gold); color:#fff; border:none; height:36px; border-radius:8px; font-weight:600; font-size:0.82rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s;" class="hover:bg-amber-600">
+                Update Status Usulan
+              </button>
+            </form>
+          </div>
+          <% } %>
+
+          <!-- Back Button -->
+          <div style="margin-top:16px;">
+            <a href="/pengabdian" style="background:#f3f4f6; color:#4b5563; border:1px solid #d1d5db; border-radius:8px; height:38px; font-size:0.85rem; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s;" class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300">
+              &larr; Kembali ke Daftar
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/assets/js/basecoat.js" defer></script>
+  <script src="/assets/js/sidebar.js" defer></script>
+  <script src="/assets/js/dropdown-menu.js" defer></script>
+  <script src="/assets/js/popover.js" defer></script>
+  <script src="/assets/js/toast.js" defer></script>
+</body>
+</html>

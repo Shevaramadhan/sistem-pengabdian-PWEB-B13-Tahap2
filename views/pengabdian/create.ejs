@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
+          document.documentElement.classList.add("dark");
+      } catch (_) {}
+      document.addEventListener("basecoat:theme", (e) => {
+        const mode = e.detail?.mode;
+        const dark = mode === "dark" ? true : mode === "light" ? false : !document.documentElement.classList.contains("dark");
+        document.documentElement.classList.toggle("dark", dark);
+        try { localStorage.setItem("themeMode", dark ? "dark" : "light"); } catch (_) {}
+      });
+    })();
+    (function () {
+      try {
+        const t = localStorage.getItem("themeVariant");
+        if (t) document.documentElement.classList.add(`theme-${t}`);
+      } catch (_) {}
+    })();
+  </script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Tambah Pengabdian — Sistem Pengabdian UNAND</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/assets/styles.css"/>
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+  <style>
+    :root {
+      --unand-green:       #006B35;
+      --unand-green-light: #1a8a4a;
+      --unand-green-pale:  #e8f5ed;
+      --unand-gold:        #C8A951;
+      --unand-gold-dark:   #96782e;
+      --unand-gold-pale:   #fdf8ec;
+    }
+    body { font-family: 'Inter', sans-serif; }
+
+    /* ── Forms ── */
+    .unand-card {
+      background: #fff;
+      border: 1px solid #e8edf0;
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+    }
+    .dark .unand-card { background: #1e2a24; border-color: #2d3f35; }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    .dark .form-label { color: #d1e0d8; }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background-color: #fff;
+      color: #1f2937;
+      transition: all 0.2s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--unand-green);
+      box-shadow: 0 0 0 3px rgba(0, 107, 53, 0.15);
+    }
+    .dark .form-control {
+      background-color: #121b16;
+      border-color: #2d3f35;
+      color: #f3f4f6;
+    }
+    .dark .form-control:focus {
+      border-color: var(--unand-gold);
+      box-shadow: 0 0 0 3px rgba(200, 169, 81, 0.2);
+    }
+    .form-control.is-invalid {
+      border-color: #ef4444;
+    }
+    .form-control.is-invalid:focus {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+
+    .error-feedback {
+      color: #ef4444;
+      font-size: 0.76rem;
+      font-weight: 500;
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* ── Drag & Drop Area ── */
+    .drag-drop-area {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 32px 24px;
+      text-align: center;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .dark .drag-drop-area {
+      background: #121b16;
+      border-color: #2d3f35;
+    }
+    .drag-drop-area.dragover {
+      border-color: var(--unand-green);
+      background: var(--unand-green-pale);
+    }
+    .dark .drag-drop-area.dragover {
+      background: rgba(0, 107, 53, 0.15);
+      border-color: var(--unand-gold);
+    }
+
+    /* ── Member Checklist scrollable ── */
+    .member-selector {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding: 12px 14px;
+      background: #fff;
+    }
+    .dark .member-selector {
+      border-color: #2d3f35;
+      background-color: #121b16;
+    }
+    .member-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .dark .member-option { border-color: #1a2e22; }
+    .member-option:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+  <%- include('../partials/sidebar') %>
+
+  <main id="content">
+    <%- include('../partials/topbar', { pageTitle: 'Tambah Usulan Pengabdian' }) %>
+
+    <div class="p-4 md:p-6" style="max-width:960px; margin:0 auto;">
+      
+      <!-- Page Header -->
+      <div style="margin-bottom:24px;">
+        <h1 style="font-size:1.5rem; font-weight:700; color:var(--unand-green); margin:0 0 6px;" class="dark:text-emerald-400">Form Pengusulan Pengabdian Dosen</h1>
+        <p style="font-size:0.85rem; color:#6b7280; margin:0;">Isi formulir di bawah ini dengan lengkap untuk mendaftarkan usulan kegiatan pengabdian masyarakat baru.</p>
+      </div>
+
+      <form id="pengabdianForm" method="POST" action="/pengabdian/create" enctype="multipart/form-data" novalidate>
+        
+        <div class="unand-card">
+          <h3 style="font-size:1rem; font-weight:700; color:var(--unand-green); margin:0 0 20px; border-bottom:1px solid #f0f4f2; padding-bottom:8px;" class="dark:text-emerald-400 dark:border-zinc-800">
+            1. Informasi Dasar Pengabdian
+          </h3>
+
+          <!-- Judul -->
+          <div class="form-group">
+            <label class="form-label" for="title">Judul Kegiatan <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="title" name="title" value="<%= oldInput.title || '' %>" 
+                   class="form-control <%= errors.title ? 'is-invalid' : '' %>" 
+                   placeholder="Masukkan judul pengabdian..." required>
+            <% if (errors.title) { %>
+              <span class="error-feedback" id="error-title"><%= errors.title %></span>
+            <% } else { %>
+              <span class="error-feedback" id="error-title" style="display:none;"></span>
+            <% } %>
+          </div>
+
+          <!-- Grid Deskripsi dan Tujuan -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;" class="grid-cols-1 md:grid-cols-2">
+            
+            <!-- Deskripsi -->
+            <div class="form-group">
+              <label class="form-label" for="description">Deskripsi Singkat <span style="color:#ef4444;">*</span></label>
+              <textarea id="description" name="description" rows="5" 
+                        class="form-control <%= errors.description ? 'is-invalid' : '' %>" 
+                        placeholder="Tuliskan latar belakang singkat dan gambaran kegiatan..." required><%= oldInput.description || '' %></textarea>
+              <% if (errors.description) { %>
+                <span class="error-feedback" id="error-description"><%= errors.description %></span>
+              <% } else { %>
+                <span class="error-feedback" id="error-description" style="display:none;"></span>
+              <% } %>
+            </div>
+
+            <!-- Tujuan -->
+            <div class="form-group">
+              <label class="form-label" for="tujuan">Tujuan Kegiatan <span style="color:#ef4444;">*</span></label>
+              <textarea id="tujuan" name="tujuan" rows="5" 
+                        class="form-control <%= errors.tujuan ? 'is-invalid' : '' %>" 
+                        placeholder="Jelaskan tujuan akhir atau hasil yang ingin dicapai..." required><%= oldInput.tujuan || '' %></textarea>
+              <% if (errors.tujuan) { %>
+                <span class="error-feedback" id="error-tujuan"><%= errors.tujuan %></span>
+              <% } else { %>
+                <span class="error-feedback" id="error-tujuan" style="display:none;"></span>
+              <% } %>
+            </div>
+
+          </div>
+
+          <!-- Grid Lokasi, Anggaran, Sumber Dana -->
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;" class="grid-cols-1 sm:grid-cols-3">
+            
+            <!-- Lokasi -->
+            <div class="form-group">
+              <label class="form-label" for="location">Lokasi Pelaksanaan <span style="color:#ef4444;">*</span></label>
+              <input type="text" id="location" name="location" value="<%= oldInput.location || '' %>" 
+                     class="form-control <%= errors.location ? 'is-invalid' : '' %>" 
+                     placeholder="Nama daerah/desa mitra..." required>
+              <% if (errors.location) { %>
+                <span class="error-feedback" id="error-location"><%= errors.location %></span>
+              <% } else { %>
+                <span class="error-feedback" id="error-location" style="display:none;"></span>
+              <% } %>
+            </div>
+
+            <!-- Anggaran -->
+            <div class="form-group">
+              <label class="form-label" for="budget">Anggaran Dana (Rp) <span style="color:#ef4444;">*</span></label>
+              <input type="number" id="budget" name="budget" value="<%= oldInput.budget || '' %>" 
+                     class="form-control <%= errors.budget ? 'is-invalid' : '' %>" 
+                     placeholder="Contoh: 15000000" required>
+              <% if (errors.budget) { %>
+                <span class="error-feedback" id="error-budget"><%= errors.budget %></span>
+              <% } else { %>
+                <span class="error-feedback" id="error-budget" style="display:none;"></span>
+              <% } %>
+            </div>
+
+            <!-- Sumber Dana -->
+            <div class="form-group">
+              <label class="form-label" for="funding_source">Sumber Dana <span style="color:#ef4444;">*</span></label>
+              <select id="funding_source" name="funding_source" class="form-control <%= errors.funding_source ? 'is-invalid' : '' %>" required>
+                <option value="">-- Pilih Sumber --</option>
+                <option value="DIPA UNAND" <%= oldInput.funding_source === 'DIPA UNAND' ? 'selected' : '' %>>DIPA UNAND</option>
+                <option value="PNBP Fakultas" <%= oldInput.funding_source === 'PNBP Fakultas' ? 'selected' : '' %>>PNBP Fakultas</option>
+                <option value="Hibah Mandiri" <%= oldInput.funding_source === 'Hibah Mandiri' ? 'selected' : '' %>>Hibah Mandiri / Swadaya</option>
+                <option value="Kementerian" <%= oldInput.funding_source === 'Kementerian' ? 'selected' : '' %>>Kemendikbudristek</option>
+              </select>
+              <% if (errors.funding_source) { %>
+                <span class="error-feedback" id="error-funding_source"><%= errors.funding_source %></span>
+              <% } else { %>
+                <span class="error-feedback" id="error-funding_source" style="display:none;"></span>
+              <% } %>
+            </div>
+
+          </div>
+
+          <!-- Grid Tanggal Mulai dan Selesai -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;" class="grid-cols-1 sm:grid-cols-2">
+            
+            <div class="form-group">
+              <label class="form-label" for="start_date">Tanggal Mulai <span style="color:#ef4444;">*</span></label>
+              <input type="date" id="start_date" name="start_date" value="<%= oldInput.start_date || '' %>" 
+                     class="form-control <%= errors.start_date ? 'is-invalid' : '' %>" required>
+              <% if (errors.start_date) { %>
+                <span class="error-feedback" id="error-start_date"><%= errors.start_date %></span>
+              <% } else { %>
+                <span class="error-feedback" id="error-start_date" style="display:none;"></span>
+              <% } %>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="end_date">Tanggal Selesai (Opsional)</label>
+              <input type="date" id="end_date" name="end_date" value="<%= oldInput.end_date || '' %>" 
+                     class="form-control">
+            </div>
+
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;" class="grid-cols-1 md:grid-cols-2">
+          
+          <!-- Column Kiri: Tim -->
+          <div class="unand-card" style="margin-bottom:0;">
+            <h3 style="font-size:1rem; font-weight:700; color:var(--unand-green); margin:0 0 16px; border-bottom:1px solid #f0f4f2; padding-bottom:8px;" class="dark:text-emerald-400 dark:border-zinc-800">
+              2. Pilih Anggota Tim (Dosen Lain)
+            </h3>
+            <p style="font-size:0.78rem; color:#6b7280; margin:0 0 12px;" class="dark:text-zinc-400">
+              Pilih rekan dosen Universitas Andalas untuk diundang bergabung ke dalam tim pengabdian ini.
+            </p>
+
+            <div class="member-selector">
+              <% if (lecturers.length === 0) { %>
+                <p style="font-size:0.8rem; color:#9ca3af; font-style:italic;">Dosen lain tidak tersedia.</p>
+              <% } else { %>
+                <% lecturers.forEach(function(l) { %>
+                  <label class="member-option">
+                    <input type="checkbox" name="members" value="<%= l.id %>" 
+                           style="width:16px; height:16px; accent-color:var(--unand-green);"
+                           <%= (Array.isArray(oldInput.members) && oldInput.members.includes(String(l.id))) || oldInput.members === String(l.id) ? 'checked' : '' %>>
+                    <div>
+                      <span style="font-weight:600; color:#374151;" class="dark:text-zinc-300"><%= l.name %></span>
+                      <span style="font-size:0.7rem; color:#9ca3af; display:block;">NIDN: <%= l.nidn %></span>
+                    </div>
+                  </label>
+                <% }) %>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Column Kanan: Upload Proposal -->
+          <div class="unand-card" style="margin-bottom:0;">
+            <h3 style="font-size:1rem; font-weight:700; color:var(--unand-green); margin:0 0 16px; border-bottom:1px solid #f0f4f2; padding-bottom:8px;" class="dark:text-emerald-400 dark:border-zinc-800">
+              3. Berkas Dokumen Proposal
+            </h3>
+            
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Unggah File Proposal (PDF) <span style="color:#ef4444;">*</span></label>
+              
+              <!-- Drag and drop zone -->
+              <div id="dragDropArea" class="drag-drop-area">
+                <input type="file" id="proposal" name="proposal" accept="application/pdf" style="display:none;" required>
+                
+                <!-- Initial State -->
+                <div id="uploadStateInitial">
+                  <div style="width:48px; height:48px; background:var(--unand-green-pale); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;" class="dark:bg-emerald-950/40">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--unand-green)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </div>
+                  <p style="font-size:0.82rem; font-weight:600; color:#374151; margin:0 0 4px;" class="dark:text-zinc-300">
+                    Seret & letakkan file di sini, atau <span style="color:var(--unand-green); text-decoration:underline;">pilih file</span>
+                  </p>
+                  <p style="font-size:0.72rem; color:#9ca3af; margin:0;">
+                    Hanya berkas PDF, Maksimal 10 MB
+                  </p>
+                </div>
+
+                <!-- Selected State -->
+                <div id="uploadStateSuccess" style="display:none;">
+                  <div style="display:inline-flex; align-items:center; gap:10px; background:#fee2e2; border:1px solid #fee2e2; border-radius:8px; padding:10px 16px; margin-bottom:8px;" class="dark:bg-red-950/20 dark:border-red-900/40">
+                    <div style="width:30px; height:30px; background:#ef4444; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
+                    <div style="text-align:left;">
+                      <div id="selectedFileName" style="font-size:0.8rem; font-weight:600; color:#b91c1c; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" class="dark:text-red-400">file-proposal.pdf</div>
+                      <div id="selectedFileSize" style="font-size:0.7rem; color:#7f1d1d;" class="dark:text-red-300/80">0 MB</div>
+                    </div>
+                  </div>
+                  <p style="font-size:0.72rem; color:#6b7280; margin:0;">
+                    Berkas siap dikirim. Klik di sini untuk mengganti.
+                  </p>
+                </div>
+              </div>
+
+              <% if (errors.proposal) { %>
+                <span class="error-feedback" id="error-proposal"><%= errors.proposal %></span>
+              <% } else { %>
+                <span class="error-feedback" id="error-proposal" style="display:none;"></span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit & Cancel Buttons -->
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px; margin-bottom:48px;">
+          <a href="/pengabdian" style="background:#f3f4f6; color:#4b5563; border:1px solid #d1d5db; border-radius:8px; height:42px; padding:0 20px; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; font-weight:600; font-size:0.88rem; transition:background 0.2s;" class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300">
+            Batal
+          </a>
+          <button type="submit" style="background:var(--unand-green); color:#fff; border:none; border-radius:8px; height:42px; padding:0 24px; font-weight:600; font-size:0.88rem; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s;" class="hover:bg-emerald-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Kirim Usulan Pengabdian
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </main>
+
+  <script src="/assets/js/basecoat.js" defer></script>
+  <script src="/assets/js/sidebar.js" defer></script>
+  <script src="/assets/js/dropdown-menu.js" defer></script>
+  <script src="/assets/js/popover.js" defer></script>
+  <script src="/assets/js/toast.js" defer></script>
+
+  <!-- Interactive JavaScript: Drag & Drop + Client validation -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const dragDropArea = document.getElementById("dragDropArea");
+      const proposalInput = document.getElementById("proposal");
+      const uploadInitial = document.getElementById("uploadStateInitial");
+      const uploadSuccess = document.getElementById("uploadStateSuccess");
+      const selectedFileName = document.getElementById("selectedFileName");
+      const selectedFileSize = document.getElementById("selectedFileSize");
+      const errorProposal = document.getElementById("error-proposal");
+
+      // Klik area drag-drop untuk membuka dialog file
+      dragDropArea.addEventListener("click", () => {
+        proposalInput.click();
+      });
+
+      // Handle file selection
+      proposalInput.addEventListener("change", (e) => {
+        handleFiles(e.target.files);
+      });
+
+      // Drag events
+      dragDropArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dragDropArea.classList.add("dragover");
+      });
+
+      dragDropArea.addEventListener("dragleave", () => {
+        dragDropArea.classList.remove("dragover");
+      });
+
+      dragDropArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dragDropArea.classList.remove("dragover");
+        if (e.dataTransfer.files.length > 0) {
+          proposalInput.files = e.dataTransfer.files;
+          handleFiles(e.dataTransfer.files);
+        }
+      });
+
+      function handleFiles(files) {
+        if (files.length === 0) return;
+        const file = files[0];
+
+        // Validasi ekstensi
+        if (file.type !== "application/pdf") {
+          errorProposal.textContent = "Berkas harus berupa file PDF.";
+          errorProposal.style.display = "block";
+          proposalInput.value = "";
+          uploadInitial.style.display = "block";
+          uploadSuccess.style.display = "none";
+          return;
+        }
+
+        // Validasi ukuran (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          errorProposal.textContent = "Ukuran file PDF tidak boleh melebihi 10 MB.";
+          errorProposal.style.display = "block";
+          proposalInput.value = "";
+          uploadInitial.style.display = "block";
+          uploadSuccess.style.display = "none";
+          return;
+        }
+
+        errorProposal.style.display = "none";
+        selectedFileName.textContent = file.name;
+        
+        const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+        selectedFileSize.textContent = sizeInMB + " MB";
+
+        uploadInitial.style.display = "none";
+        uploadSuccess.style.display = "block";
+      }
+
+      // ── Client-side Validation ──
+      const form = document.getElementById("pengabdianForm");
+      
+      form.addEventListener("submit", function(event) {
+        let isValid = true;
+
+        // Reset errors
+        document.querySelectorAll(".error-feedback").forEach(el => {
+          if (el.id !== "error-proposal" || !proposalInput.files.length) {
+            el.textContent = "";
+            el.style.display = "none";
+          }
+        });
+        document.querySelectorAll(".form-control").forEach(el => {
+          el.classList.remove("is-invalid");
+        });
+
+        // Judul
+        const titleInput = document.getElementById("title");
+        const errorTitle = document.getElementById("error-title");
+        if (!titleInput.value || titleInput.value.trim().length < 5) {
+          errorTitle.textContent = "Judul wajib diisi dan minimal 5 karakter.";
+          errorTitle.style.display = "block";
+          titleInput.classList.add("is-invalid");
+          isValid = false;
+        }
+
+        // Deskripsi
+        const descInput = document.getElementById("description");
+        const errorDesc = document.getElementById("error-description");
+        if (!descInput.value || descInput.value.trim().length === 0) {
+          errorDesc.textContent = "Deskripsi kegiatan wajib diisi.";
+          errorDesc.style.display = "block";
+          descInput.classList.add("is-invalid");
+          isValid = false;
+        }
+
+        // Tujuan
+        const tujuanInput = document.getElementById("tujuan");
+        const errorTujuan = document.getElementById("error-tujuan");
+        if (!tujuanInput.value || tujuanInput.value.trim().length === 0) {
+          errorTujuan.textContent = "Tujuan kegiatan wajib diisi.";
+          errorTujuan.style.display = "block";
+          tujuanInput.classList.add("is-invalid");
+          isValid = false;
+        }
+
+        // Lokasi
+        const locInput = document.getElementById("location");
+        const errorLoc = document.getElementById("error-location");
+        if (!locInput.value || locInput.value.trim().length === 0) {
+          errorLoc.textContent = "Lokasi kegiatan wajib diisi.";
+          errorLoc.style.display = "block";
+          locInput.classList.add("is-invalid");
+          isValid = false;
+        }
+
+        // Anggaran
+        const budgetInput = document.getElementById("budget");
+        const errorBudget = document.getElementById("error-budget");
+        if (!budgetInput.value || isNaN(budgetInput.value) || parseFloat(budgetInput.value) <= 0) {
+          errorBudget.textContent = "Anggaran harus berupa angka positif.";
+          errorBudget.style.display = "block";
+          budgetInput.classList.add("is-invalid");
+          isValid = false;
+        }
+
+        // Sumber Dana
+        const fundingInput = document.getElementById("funding_source");
+        const errorFunding = document.getElementById("error-funding_source");
+        if (!fundingInput.value) {
+          errorFunding.textContent = "Silakan pilih sumber dana.";
+          errorFunding.style.display = "block";
+          fundingInput.classList.add("is-invalid");
+          isValid = false;
+        }
+
+        // Tanggal Mulai
+        const dateInput = document.getElementById("start_date");
+        const errorDate = document.getElementById("error-start_date");
+        if (!dateInput.value) {
+          errorDate.textContent = "Tanggal mulai kegiatan wajib diisi.";
+          errorDate.style.display = "block";
+          dateInput.classList.add("is-invalid");
+          isValid = false;
+        }
+
+        // Proposal (Client validation if not uploaded yet)
+        if (!proposalInput.files.length) {
+          errorProposal.textContent = "Berkas proposal PDF wajib diunggah.";
+          errorProposal.style.display = "block";
+          isValid = false;
+        }
+
+        if (!isValid) {
+          event.preventDefault(); // Batalkan pengiriman form jika ada error
+          
+          // Scroll ke input error pertama
+          const firstError = document.querySelector(".is-invalid, #error-proposal");
+          if (firstError) {
+            firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -71,11 +71,21 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="status">Status</label>
-          <select id="status" name="status" class="form-input" required>
-            <option value="proposed" <%= service.status === 'proposed' ? 'selected' : '' %>>Diusulkan (Proposed)</option>
-            <option value="ongoing" <%= service.status === 'ongoing' ? 'selected' : '' %>>Sedang Berjalan (Ongoing)</option>
-            <option value="completed" <%= service.status === 'completed' ? 'selected' : '' %>>Selesai (Completed)</option>
-          </select>
+          <% if (isAdmin) { %>
+            <select id="status" name="status" class="form-input" required>
+              <option value="proposed" <%= service.status === 'proposed' ? 'selected' : '' %>>Diusulkan (Proposed)</option>
+              <option value="ongoing" <%= service.status === 'ongoing' ? 'selected' : '' %>>Sedang Berjalan (Ongoing)</option>
+              <option value="completed" <%= service.status === 'completed' ? 'selected' : '' %>>Selesai (Completed)</option>
+            </select>
+          <% } else { %>
+            <% 
+              let statusLabel = 'Diusulkan';
+              if (service.status === 'ongoing') statusLabel = 'Sedang Berjalan';
+              if (service.status === 'completed') statusLabel = 'Selesai';
+            %>
+            <input type="text" class="form-input" value="<%= statusLabel %>" disabled style="background-color: #f3f4f6;">
+            <input type="hidden" name="status" value="<%= service.status %>">
+          <% } %>
         </div>
       </div>
       

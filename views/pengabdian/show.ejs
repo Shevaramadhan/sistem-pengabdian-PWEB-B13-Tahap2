@@ -24,14 +24,14 @@
     <div>
       <h2><%= service.title %></h2>
       <p>Detail kegiatan pengabdian &bull;
-        <% if (service.is_finalized) { %>
+        <% if (service.status === 'completed') { %>
           <span style="color: #1e40af; font-weight: 600;">🔒 Sudah Difinalisasi</span>
         <% } else { %>
           <span style="color: #92650a;">Belum difinalisasi</span>
         <% } %>
       </p>
     </div>
-    <% if (!service.is_finalized && (isAdmin || service.created_by === locals.user?.id)) { %>
+    <% if (!service.status === 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         <a href="/pengabdian/<%= service.id %>/edit" class="btn-ghost-sm">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
@@ -65,7 +65,7 @@
           <% } else { %>
             <span class="badge b-completed">Selesai</span>
           <% } %>
-          <% if (service.is_finalized) { %>
+          <% if (service.status === 'completed') { %>
             <span class="badge" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; margin-left: 6px;">🔒 Final</span>
           <% } %>
         </div>
@@ -112,7 +112,7 @@
         <div style="border: 2px dashed #d1e8d9; border-radius: 8px; padding: 20px; text-align: center; color: #6b7280;">
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="display: block; margin: 0 auto 8px;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
           <p style="font-size: 0.82rem; margin: 0 0 10px;">Belum ada laporan yang diupload.</p>
-          <% if (!service.is_finalized && (isAdmin || service.created_by === locals.user?.id)) { %>
+          <% if (!service.status === 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
             <a href="/pengabdian/<%= service.id %>/upload" class="btn-ghost-sm">Upload Sekarang</a>
           <% } %>
         </div>
@@ -127,7 +127,7 @@
       <h2>Anggota Tim Pengabdian</h2>
       <p>Daftar dosen yang terlibat dalam pengabdian ini.</p>
     </div>
-    <% if (!service.is_finalized && (isAdmin || service.created_by === locals.user?.id)) { %>
+    <% if (!service.status === 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
       <button class="btn-primary btn-sm" onclick="document.getElementById('addMemberModal').showModal()">
         + Tambah Anggota
       </button>
@@ -154,7 +154,7 @@
             <th>Peran</th>
             <th>Keahlian</th>
             <th>Status Konfirmasi</th>
-            <% if (!service.is_finalized && (isAdmin || service.created_by === locals.user?.id)) { %>
+            <% if (!service.status === 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
               <th style="text-align: center;">Aksi</th>
             <% } %>
           </tr>
@@ -177,7 +177,7 @@
                   <span class="badge" style="background:#fef2f2; color:#dc2626; border:1px solid #fca5a5;">Ditolak</span>
                 <% } %>
               </td>
-              <% if (!service.is_finalized && (isAdmin || service.created_by === locals.user?.id)) { %>
+              <% if (!service.status === 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
                 <td style="text-align: center; white-space: nowrap;">
                   <button class="btn-ghost-sm" onclick="openEditMemberModal('<%= member.id %>', '<%= member.member_role %>', '<%= member.status %>')">Edit</button>
                   <form action="/pengabdian/<%= service.id %>/anggota/<%= member.id %>/delete" method="POST" style="display: inline;" onsubmit="return confirm('Hapus anggota ini?');">

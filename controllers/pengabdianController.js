@@ -1,6 +1,6 @@
-const db   = require("../lib/db");
+const db = require("../lib/db");
 const path = require("path");
-const fs   = require("fs");
+const fs = require("fs");
 const ExcelJS = require("exceljs");
 const PdfTable = require("pdfkit-table");
 
@@ -66,7 +66,7 @@ const getAllPengabdian = async (req, res, next) => {
   }
 };
 
-// ── GET /pengabdian/:id — Detail pengabdian ──
+// ── GET /pengabdian/:id — Detail pengabdian
 const getPengabdianById = async (req, res, next) => {
   const connection = await db.getConnection();
   try {
@@ -128,7 +128,12 @@ const getViewFormCreatePengabdian = (req, res) => {
 
 // ── POST /pengabdian — Simpan data pengabdian baru ──
 const createPengabdian = async (req, res, next) => {
-  const { title, description, location, start_date, end_date, funding_source, status } = req.body;
+  const { title, description, location, start_date, end_date, funding_source } = req.body;
+  let status = req.body.status;
+  const isAdmin = req.session.user?.role === "admin";
+  if (!isAdmin) {
+    status = 'proposed';
+  }
   const errors = [];
 
   if (!title?.trim())    errors.push("Judul wajib diisi.");
@@ -189,7 +194,9 @@ const getViewFormUpdatePengabdian = async (req, res, next) => {
 // ── POST /pengabdian/:id/edit — Simpan perubahan data pengabdian ──
 const updatePengabdian = async (req, res, next) => {
   const { id } = req.params;
-  const { title, description, location, start_date, end_date, funding_source, status } = req.body;
+  const { title, description, location, start_date, end_date, funding_source } = req.body;
+  let status = req.body.status;
+  const isAdmin = req.session.user?.role === "admin";
 
   const errors = [];
   if (!title?.trim())    errors.push("Judul wajib diisi.");
@@ -203,6 +210,13 @@ const updatePengabdian = async (req, res, next) => {
 
   const connection = await db.getConnection();
   try {
+    if (!isAdmin) {
+      const [rows] = await connection.query("SELECT status FROM community_services WHERE id=?", [id]);
+      if (rows.length > 0) {
+        status = rows[0].status;
+      }
+    }
+
     await connection.query(
       `UPDATE community_services
        SET title=?, description=?, location=?, start_date=?, end_date=?,
@@ -253,7 +267,7 @@ const getViewFormUploadLaporan = async (req, res, next) => {
     const role    = req.session.user?.role;
     const service = res.locals.service;
 
-    if (service.is_finalized) {
+    if (service.status === 'completed') {
       return res.status(403).render("error", { message: "Pengabdian sudah difinalisasi, tidak bisa upload laporan baru." });
     }
 
@@ -278,7 +292,7 @@ const uploadLaporan = async (req, res, next) => {
 
   const connection = await db.getConnection();
   try {
-    if (service.is_finalized) {
+    if (service.status === 'completed') {
       return res.status(403).json({ status: 'error', message: 'Pengabdian sudah difinalisasi.' });
     }
 
@@ -315,7 +329,7 @@ const finalizePengabdian = async (req, res, next) => {
 
   const connection = await db.getConnection();
   try {
-    if (service.is_finalized) {
+    if (service.status === 'completed') {
       return res.status(400).json({ status: 'error', message: 'Pengabdian sudah difinalisasi.' });
     }
 

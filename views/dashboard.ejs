@@ -1,37 +1,4 @@
-<!doctype html>
-<html lang="id">
-<head>
-  <script>
-    (() => {
-      try {
-        const stored = localStorage.getItem("themeMode");
-        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches)
-          document.documentElement.classList.add("dark");
-      } catch (_) {}
-      document.addEventListener("basecoat:theme", (e) => {
-        const mode = e.detail?.mode;
-        const dark = mode === "dark" ? true : mode === "light" ? false : !document.documentElement.classList.contains("dark");
-        document.documentElement.classList.toggle("dark", dark);
-        try { localStorage.setItem("themeMode", dark ? "dark" : "light"); } catch (_) {}
-      });
-    })();
-    (function () {
-      try {
-        const t = localStorage.getItem("themeVariant");
-        if (t) document.documentElement.classList.add(`theme-${t}`);
-      } catch (_) {}
-    })();
-  </script>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Dashboard — Sistem Pengabdian UNAND</title>
-  <meta name="description" content="Dashboard Sistem Informasi Pengabdian Dosen Universitas Andalas — Kelompok 13 PWEB B"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/assets/styles.css"/>
-  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
-  <style>
+<style>
     :root {
       --unand-green:       #006B35;
       --unand-green-light: #1a8a4a;
@@ -146,15 +113,8 @@
     .dark .empty-desc { color: #9ca3af; }
     .dark .stat-value { color: #d1e0d8; }
   </style>
-</head>
-<body>
+<div style="max-width:1280px; margin:0 auto;">
 
-  <%- include('partials/sidebar') %>
-
-  <main id="content">
-    <%- include('partials/topbar', { pageTitle: 'Dashboard' }) %>
-
-    <div class="p-4 md:p-6" style="max-width:1280px; margin:0 auto;">
 
       <!-- Welcome Banner -->
       <div class="welcome-banner">
@@ -332,14 +292,44 @@
                   </div>
                 </td>
                 <td style="color:#6b7280;"><%= new Date(s.start_date).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}) %></td>
-                <td>
-                  <% if (s.status === 'proposed') { %>
-                    <span class="badge-proposed">Diusulkan</span>
-                  <% } else if (s.status === 'ongoing') { %>
-                    <span class="badge-ongoing">Berjalan</span>
-                  <% } else { %>
-                    <span class="badge-completed">Selesai</span>
-                  <% } %>
+                <td style="min-width:260px; padding: 12px 20px;">
+                  <div style="display:flex; align-items:center; gap:0px; width:100%;">
+                    <!-- Step 1 -->
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; position:relative;">
+                      <div style="width:22px; height:22px; border-radius:50%; background:<%= s.status === 'proposed' || s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#e5e7eb' %>; display:flex; align-items:center; justify-content:center; z-index:2; border: 3px solid #fff; box-shadow: 0 0 0 1px <%= s.status === 'proposed' || s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#e5e7eb' %>;">
+                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      </div>
+                      <span style="font-size:0.65rem; font-weight:700; color:<%= s.status === 'proposed' || s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#9ca3af' %>;">Diusulkan</span>
+                    </div>
+                    
+                    <div style="height:3px; flex:1; background:<%= s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#e5e7eb' %>; margin: -16px -15% 0 -15%; z-index:1; border-radius:2px;"></div>
+                    
+                    <!-- Step 2 -->
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; position:relative;">
+                      <div style="width:22px; height:22px; border-radius:50%; background:<%= s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#fff' %>; display:flex; align-items:center; justify-content:center; z-index:2; border: 3px solid #fff; box-shadow: 0 0 0 1px <%= s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#d1d5db' %>;">
+                        <% if (s.status === 'ongoing' || s.status === 'completed') { %>
+                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <% } else { %>
+                          <div style="width:6px; height:6px; border-radius:50%; background:#d1d5db;"></div>
+                        <% } %>
+                      </div>
+                      <span style="font-size:0.65rem; font-weight:<%= s.status === 'ongoing' || s.status === 'completed' ? '700' : '500' %>; color:<%= s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#9ca3af' %>;">Berjalan</span>
+                    </div>
+
+                    <div style="height:3px; flex:1; background:<%= s.status === 'completed' ? 'var(--unand-green)' : '#e5e7eb' %>; margin: -16px -15% 0 -15%; z-index:1; border-radius:2px;"></div>
+                    
+                    <!-- Step 3 -->
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; position:relative;">
+                      <div style="width:22px; height:22px; border-radius:50%; background:<%= s.status === 'completed' ? 'var(--unand-green)' : '#fff' %>; display:flex; align-items:center; justify-content:center; z-index:2; border: 3px solid #fff; box-shadow: 0 0 0 1px <%= s.status === 'completed' ? 'var(--unand-green)' : '#d1d5db' %>;">
+                        <% if (s.status === 'completed') { %>
+                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <% } else { %>
+                          <div style="width:6px; height:6px; border-radius:50%; background:#d1d5db;"></div>
+                        <% } %>
+                      </div>
+                      <span style="font-size:0.65rem; font-weight:<%= s.status === 'completed' ? '700' : '500' %>; color:<%= s.status === 'completed' ? 'var(--unand-green)' : '#9ca3af' %>;">Selesai</span>
+                    </div>
+                  </div>
                 </td>
                 <td style="text-align:center;">
                   <a href="/pengabdian/<%= s.id %>" style="color:var(--unand-green);font-size:0.8rem;font-weight:600;text-decoration:none;">Detail &rarr;</a>
@@ -358,29 +348,5 @@
         <% } %>
       </div>
 
-    </div>
-  </main>
-
-  <script src="/assets/js/basecoat.js" defer></script>
-  <script src="/assets/js/sidebar.js" defer></script>
-  <script src="/assets/js/popover.js" defer></script>
-  <script src="/assets/js/toast.js" defer></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      var sidebar = document.getElementById("sidebar");
-      if (!sidebar) return;
-      var currentPath = window.location.pathname.replace(/\/$/, "");
-      sidebar.querySelectorAll("a").forEach(function(a) {
-        var href = a.getAttribute("href");
-        if (!href) return;
-        try {
-          var url = new URL(href, window.location.origin);
-          if (url.pathname.replace(/\/$/, "") === currentPath)
-            a.setAttribute("aria-current", "page");
-        } catch(_) {}
-      });
-    });
-  </script>
-
-</body>
-</html>
+    
+</div>

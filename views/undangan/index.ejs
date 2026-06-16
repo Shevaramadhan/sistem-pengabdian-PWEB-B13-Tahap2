@@ -1,82 +1,265 @@
-<div class="breadcrumb">
-  <a href="/undangan">Keanggotaan</a>
-  <span>/</span>
-  <span>Undangan</span>
-</div>
+<style>
+  :root {
+    --unand-green:       #006B35;
+    --unand-green-light: #1a8a4a;
+    --unand-green-pale:  #e8f5ed;
+  }
 
-<div class="page-card mb-6">
-  <div class="page-card-header">
-    <div>
-      <h2>Daftar Undangan Keanggotaan</h2>
-      <p>Kelola undangan untuk bergabung dalam tim pengabdian.</p>
+  .unand-card {
+    background: #fff;
+    border: 1px solid #e8edf0;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .dark .unand-card { background: #1e2a24; border-color: #2d3f35; }
+  .unand-card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #f0f4f2;
+  }
+  .dark .unand-card-header { border-color: #2d3f35; }
+  .unand-card-header h2 { font-size: 1rem; font-weight: 600; color: var(--unand-green); margin: 0; }
+  .dark .unand-card-header h2 { color: #86c99e; }
+  .unand-card-header p { font-size: 0.8rem; color: #6b7280; margin: 4px 0 0; }
+
+  .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .data-table thead th {
+    background: var(--unand-green-pale);
+    color: var(--unand-green);
+    font-size: 0.75rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 12px 16px;
+    border-bottom: 2px solid #d1e8d9;
+  }
+  .dark .data-table thead th { background: #1e2a24; color: #86c99e; border-color: #2d3f35; }
+  .data-table tbody td { padding: 14px 16px; border-bottom: 1px solid #f0f4f2; font-size: 0.875rem; vertical-align: middle; }
+  .dark .data-table tbody td { border-color: #2d3f35; color: #d1e0d8; }
+  .data-table tbody tr:hover td { background: var(--unand-green-pale); }
+
+  .badge-pending  { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
+  .badge-approved { background: #d1fae5; color: #059669; border: 1px solid #6ee7b7; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
+  .badge-rejected { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
+
+  .btn-accept { background: var(--unand-green); color:#fff; padding:6px 14px; border-radius:8px; font-size:0.78rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:5px; transition:background 0.2s; cursor:pointer; border:none; }
+  .btn-accept:hover { background: var(--unand-green-light); }
+  .btn-reject { background:#fff; color:#dc2626; border:1px solid #fca5a5; padding:5px 14px; border-radius:8px; font-size:0.78rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:5px; transition:all 0.2s; cursor:pointer; }
+  .btn-reject:hover { background:#fee2e2; }
+  .dark .btn-reject { background:#1e2a24; color:#f87171; border-color:#7f1d1d; }
+
+  .flash-success { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:0.87rem; font-weight:500; }
+  .flash-warning { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:0.87rem; font-weight:500; }
+  .flash-error   { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:0.87rem; font-weight:500; }
+
+  /* ── Custom Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 32px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: modalIn 0.2s ease;
+    text-align: center;
+  }
+  .dark .modal-box { background: #1e2a24; }
+  @keyframes modalIn {
+    from { transform: scale(0.92); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+  .modal-icon {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .modal-title { font-size: 1.05rem; font-weight: 700; color: #111827; margin: 0 0 8px; }
+  .dark .modal-title { color: #f3f4f6; }
+  .modal-desc  { font-size: 0.85rem; color: #6b7280; margin: 0 0 24px; line-height: 1.5; }
+  .dark .modal-desc { color: #9ca3af; }
+  .modal-actions { display: flex; gap: 10px; justify-content: center; }
+  .modal-btn-cancel {
+    padding: 9px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+    background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .modal-btn-cancel:hover { background: #e5e7eb; }
+  .dark .modal-btn-cancel { background: #2d3f35; color: #d1e0d8; border-color: #4a6353; }
+  .modal-btn-confirm-accept {
+    padding: 9px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+    background: var(--unand-green); color: #fff; border: none;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .modal-btn-confirm-accept:hover { background: var(--unand-green-light); }
+  .modal-btn-confirm-reject {
+    padding: 9px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+    background: #dc2626; color: #fff; border: none;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .modal-btn-confirm-reject:hover { background: #b91c1c; }
+</style>
+
+<!-- ── Modal Terima ── -->
+<div id="modal-accept" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-icon" style="background:#d1fae5;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="modal-title">Terima Undangan?</div>
+    <div class="modal-desc">Anda akan bergabung sebagai anggota tim pengabdian ini. Tindakan ini tidak dapat dibatalkan setelah dikonfirmasi.</div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modal-accept')">Batal</button>
+      <a id="modal-accept-link" href="#" class="modal-btn-confirm-accept">Ya, Terima</a>
     </div>
   </div>
-  
-  <div class="page-card-body">
-    <!-- Flash Messages -->
-    <% if (typeof req !== 'undefined' && req.query && req.query.success) { %>
-      <div class="flash-success">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <span>Status undangan berhasil diperbarui.</span>
-      </div>
-    <% } %>
+</div>
 
-    <% if (invitations && invitations.length > 0) { %>
-      <div style="overflow-x: auto;">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Pengabdian</th>
-              <th>Dosen Pengusul</th>
-              <th>Peran Anda</th>
-              <th>Status</th>
-              <th style="text-align: center;">Tanggal Undangan</th>
-              <th style="text-align: center;">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% invitations.forEach(inv => { %>
-              <tr>
-                <td>
-                  <div style="font-weight: 500; color: var(--u-text);"><%= inv.service_title %></div>
-                  <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;"><%= inv.location %> &bull; <%= new Date(inv.start_date).toLocaleDateString('id-ID') %></div>
-                </td>
-                <td><%= inv.creator_name %></td>
-                <td><span style="font-weight: 500;"><%= inv.member_role %></span></td>
-                <td>
-                  <% if (inv.status === 'pending') { %>
-                    <span class="badge b-proposed">Menunggu</span>
-                  <% } else if (inv.status === 'approved') { %>
-                    <span class="badge b-ongoing">Disetujui</span>
-                  <% } else if (inv.status === 'rejected') { %>
-                    <span class="badge" style="background:#fef2f2; color:#dc2626; border:1px solid #fca5a5;">Ditolak</span>
-                  <% } %>
-                </td>
-                <td style="text-align: center; color: #6b7280;"><%= new Date(inv.created_at).toLocaleDateString('id-ID') %></td>
-                <td style="text-align: center;">
-                  <% if (inv.status === 'pending') { %>
-                    <div style="display: flex; gap: 4px; justify-content: center;">
-                      <!-- Fitur 17 (Approve/Reject) adalah tugas Athaya, ini hanya mock tombol -->
-                      <button class="btn-ghost-sm" style="color: #006B35; border-color: #b5d9c4; background: #e8f5ed;" onclick="alert('Fitur Approve (Tugas Athaya)')">Terima</button>
-                      <button class="btn-ghost-sm" style="color: #dc2626; border-color: #fca5a5; background: #fef2f2;" onclick="alert('Fitur Reject (Tugas Athaya)')">Tolak</button>
-                    </div>
-                  <% } else { %>
-                    <span class="text-xs text-muted-foreground">Telah diproses</span>
-                  <% } %>
-                </td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      </div>
-    <% } else { %>
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ug)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"/></svg>
-        </div>
-        <h3>Belum Ada Undangan</h3>
-        <p>Saat ini Anda belum menerima undangan untuk bergabung ke tim pengabdian mana pun.</p>
-      </div>
-    <% } %>
+<!-- ── Modal Tolak ── -->
+<div id="modal-reject" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-icon" style="background:#fee2e2;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    <div class="modal-title">Tolak Undangan?</div>
+    <div class="modal-desc">Anda akan menolak undangan ini. Keputusan ini bersifat final dan Anda tidak akan menjadi anggota tim pengabdian tersebut.</div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modal-reject')">Batal</button>
+      <a id="modal-reject-link" href="#" class="modal-btn-confirm-reject">Ya, Tolak</a>
+    </div>
   </div>
 </div>
+
+<div class="p-4 md:p-6" style="max-width:1280px; margin:0 auto;">
+
+  <!-- Flash Messages -->
+  <% if (typeof req !== 'undefined' && req.query) { %>
+    <% if (req.query.success === 'accepted') { %>
+      <div class="flash-success">✅ Undangan berhasil diterima. Anda sekarang menjadi anggota tim pengabdian tersebut.</div>
+    <% } else if (req.query.success === 'rejected') { %>
+      <div class="flash-warning">✋ Undangan telah ditolak.</div>
+    <% } else if (req.query.error === 'already_responded') { %>
+      <div class="flash-error">⚠️ Undangan ini sudah pernah direspons sebelumnya.</div>
+    <% } else if (req.query.error === 'not_found') { %>
+      <div class="flash-error">⚠️ Undangan tidak ditemukan atau bukan milik Anda.</div>
+    <% } %>
+  <% } %>
+
+  <div class="unand-card">
+    <div class="unand-card-header">
+      <h2>Undangan Keanggotaan Tim Pengabdian</h2>
+      <p>Daftar usulan kegiatan pengabdian yang mengundang Anda sebagai anggota tim.</p>
+    </div>
+
+    <% if (invitations.length === 0) { %>
+    <div style="text-align:center; padding:64px 24px;">
+      <div style="width:72px; height:72px; background:var(--unand-green-pale); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--unand-green)" stroke-width="1.5">
+          <path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"/>
+        </svg>
+      </div>
+      <h3 style="font-size:1.1rem; font-weight:600; margin:0 0 6px; color:#374151;">Tidak Ada Undangan</h3>
+      <p style="font-size:0.85rem; color:#9ca3af; margin:0; max-width:320px; margin-left:auto; margin-right:auto;">
+        Saat ini Anda tidak memiliki undangan masuk untuk bergabung sebagai anggota tim pengabdian.
+      </p>
+    </div>
+
+    <% } else { %>
+    <div style="overflow-x:auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:40px; text-align:center;">#</th>
+            <th style="text-align:left; min-width:200px;">Judul Pengabdian</th>
+            <th style="text-align:left;">Ketua Pengusul</th>
+            <th style="text-align:left; min-width:160px;">Lokasi & Tanggal</th>
+            <th style="text-align:center; width:130px;">Status Anda</th>
+            <th style="text-align:center; width:210px;">Aksi Respon</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% invitations.forEach(function(inv, idx) { %>
+          <tr>
+            <td style="text-align:center; color:#9ca3af;"><%= idx + 1 %></td>
+            <td>
+              <a href="/pengabdian/<%= inv.cs_id %>" style="font-weight:600; color:#111827; text-decoration:none; line-height:1.4; display:block;"><%= inv.cs_title %></a>
+              <% if (inv.member_role) { %>
+              <span style="font-size:0.72rem; color:#6b7280; margin-top:2px; display:block;">Peran: <%= inv.member_role %></span>
+              <% } %>
+            </td>
+            <td style="font-weight:500; font-size:0.85rem;"><%= inv.creator_name %></td>
+            <td style="color:#4b5563;">
+              <div style="font-size:0.82rem;"><%= inv.cs_location %></div>
+              <div style="font-size:0.75rem; color:#9ca3af; margin-top:2px;">
+                Mulai: <%= new Date(inv.cs_start_date).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) %>
+              </div>
+            </td>
+            <td style="text-align:center;">
+              <% if (inv.status === 'pending') { %>
+                <span class="badge-pending">Menunggu</span>
+              <% } else if (inv.status === 'approved') { %>
+                <span class="badge-approved">Diterima</span>
+              <% } else { %>
+                <span class="badge-rejected">Ditolak</span>
+              <% } %>
+            </td>
+            <td style="text-align:center;">
+              <% if (inv.status === 'pending') { %>
+                <div style="display:inline-flex; gap:8px; align-items:center;">
+                  <button class="btn-accept"
+                    onclick="openModal('modal-accept', '/undangan/<%= inv.member_record_id %>/accept')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Terima
+                  </button>
+                  <button class="btn-reject"
+                    onclick="openModal('modal-reject', '/undangan/<%= inv.member_record_id %>/reject')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Tolak
+                  </button>
+                </div>
+              <% } else { %>
+                <span style="font-size:0.8rem; color:#9ca3af; font-style:italic;">Sudah direspons</span>
+              <% } %>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+  </div>
+
+</div>
+
+<script>
+  function openModal(modalId, url) {
+    const modal = document.getElementById(modalId);
+    if (modalId === 'modal-accept') {
+      document.getElementById('modal-accept-link').href = url;
+    } else {
+      document.getElementById('modal-reject-link').href = url;
+    }
+    modal.classList.add('active');
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+  }
+
+  // Tutup modal jika klik di luar box
+  document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        overlay.classList.remove('active');
+      }
+    });
+  });
+</script>

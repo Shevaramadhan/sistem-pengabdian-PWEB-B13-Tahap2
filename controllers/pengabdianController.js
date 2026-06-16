@@ -13,26 +13,60 @@ const getAllPengabdian = async (req, res, next) => {
     const isAdmin = role === "admin";
 
     const search = req.query.search || "";
+    const status = req.query.status || "";
+    const year   = req.query.year   || "";
+    const sort   = req.query.sort   || "newest";
     const page   = parseInt(req.query.page) || 1;
     const limit  = 10;
     const offset = (page - 1) * limit;
 
-    let whereClause = isAdmin ? "" : "WHERE cs.created_by = ?";
-    let params      = isAdmin ? [] : [userId];
+    // ── Build WHERE clause ──
+    let conditions = [];
+    let params     = [];
 
+    if (!isAdmin) {
+      conditions.push("cs.created_by = ?");
+      params.push(userId);
+    }
     if (search) {
-      whereClause += isAdmin
-        ? "WHERE (cs.title LIKE ? OR cs.location LIKE ?)"
-        : " AND (cs.title LIKE ? OR cs.location LIKE ?)";
+      conditions.push("(cs.title LIKE ? OR cs.location LIKE ?)");
       params.push(`%${search}%`, `%${search}%`);
     }
+    if (status) {
+      conditions.push("cs.status = ?");
+      params.push(status);
+    }
+    if (year) {
+      conditions.push("YEAR(cs.start_date) = ?");
+      params.push(year);
+    }
 
-    const countSql = `
-      SELECT COUNT(*) AS total
+    const whereClause = conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : "";
+    const orderClause = sort === "oldest" ? "ORDER BY cs.created_at ASC" : "ORDER BY cs.created_at DESC";
+
+    // ── Statistik ──
+    const statsSql = `
+      SELECT 
+        COUNT(*) AS total,
+        SUM(IF(cs.status = 'proposed', 1, 0))   AS proposed,
+        SUM(IF(cs.status = 'ongoing', 1, 0))    AS ongoing,
+        SUM(IF(cs.status = 'completed', 1, 0))  AS completed
       FROM community_services cs
-      ${whereClause}`;
+      ${isAdmin ? "" : "WHERE cs.created_by = ?"}`;
+    const [[statsRow]] = await connection.query(statsSql, isAdmin ? [] : [userId]);
+
+    const stats = {
+      total:     statsRow.total     || 0,
+      proposed:  statsRow.proposed  || 0,
+      ongoing:   statsRow.ongoing   || 0,
+      completed: statsRow.completed || 0,
+    };
+
+    // ── Count dengan filter ──
+    const countSql = `SELECT COUNT(*) AS total FROM community_services cs ${whereClause}`;
     const [[{ total }]] = await connection.query(countSql, params);
 
+    // ── Data ──
     const dataSql = `
       SELECT cs.id, cs.title, cs.location, cs.start_date, cs.end_date,
              cs.status, cs.funding_source, cs.created_at, cs.created_by,
@@ -40,9 +74,19 @@ const getAllPengabdian = async (req, res, next) => {
       FROM community_services cs
       JOIN users u ON cs.created_by = u.id
       ${whereClause}
-      ORDER BY cs.created_at DESC
+      ${orderClause}
       LIMIT ? OFFSET ?`;
     const [rows] = await connection.query(dataSql, [...params, limit, offset]);
+
+    // ── Available Years ──
+    const yearBaseCond = isAdmin ? "" : "WHERE cs.created_by = ?";
+    const [yearRows] = await connection.query(
+      `SELECT DISTINCT YEAR(cs.start_date) AS yr FROM community_services cs ${yearBaseCond} ORDER BY yr DESC`,
+      isAdmin ? [] : [userId]
+    );
+    const availableYears = yearRows.map(r => r.yr).filter(Boolean);
+
+    const totalPages = Math.ceil(total / limit);
 
     res.render("pengabdian/index", {
       layout: "layouts/pengabdian",
@@ -51,9 +95,20 @@ const getAllPengabdian = async (req, res, next) => {
       isAdmin,
       services: rows,
       search,
+      stats,
+      availableYears,
+      filters: {
+        search,
+        status,
+        year,
+        sort,
+        page,
+        totalPages,
+        totalItems: total,
+      },
       pagination: {
         page,
-        totalPages: Math.ceil(total / limit),
+        totalPages,
         total,
         limit,
       },
@@ -129,6 +184,7 @@ const getViewFormCreatePengabdian = (req, res) => {
 // ── POST /pengabdian — Simpan data pengabdian baru ──
 const createPengabdian = async (req, res, next) => {
   const { title, description, location, start_date, end_date, funding_source } = req.body;
+  const proposalFile = req.file ? `/uploads/proposals/${req.file.filename}` : null;
   let status = req.body.status;
   const isAdmin = req.session.user?.role === "admin";
   if (!isAdmin) {
@@ -149,8 +205,8 @@ const createPengabdian = async (req, res, next) => {
   try {
     await connection.query(
       `INSERT INTO community_services
-         (title, description, location, start_date, end_date, funding_source, status, created_by, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+         (title, description, location, start_date, end_date, funding_source, status, proposal_file, created_by, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
         title.trim(),
         description?.trim() || null,
@@ -159,6 +215,7 @@ const createPengabdian = async (req, res, next) => {
         end_date || null,
         funding_source?.trim() || null,
         status,
+        proposalFile,
         req.session.userId,
       ]
     );
@@ -195,6 +252,7 @@ const getViewFormUpdatePengabdian = async (req, res, next) => {
 const updatePengabdian = async (req, res, next) => {
   const { id } = req.params;
   const { title, description, location, start_date, end_date, funding_source } = req.body;
+  const proposalFile = req.file ? `/uploads/proposals/${req.file.filename}` : null;
   let status = req.body.status;
   const isAdmin = req.session.user?.role === "admin";
 

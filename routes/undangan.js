@@ -6,10 +6,13 @@ const { checkPermission }  = require("../middlewares/acl");
 
 router.use(isAuthenticated);
 
-router.get("/", checkPermission("view_pengabdian"), undanganController.getAllUndangan); // Daftar undangan (Fitur 16)
+// Fitur 16: Lihat daftar undangan
+router.get("/", checkPermission("view_pengabdian"), undanganController.getAllUndangan);
 
-// Note: Fitur 17 (Approve/Reject) adalah tugas Athaya, nanti rutenya ditambah di sini
-// router.post("/:id/approve", undanganController.approve);
-// router.post("/:id/reject", undanganController.reject);
+// Fitur 17: Terima undangan
+router.get("/:id/accept", checkPermission("view_pengabdian"), undanganController.acceptUndangan);
+
+// Fitur 17: Tolak undangan
+router.get("/:id/reject", checkPermission("view_pengabdian"), undanganController.rejectUndangan);
 
 module.exports = router;

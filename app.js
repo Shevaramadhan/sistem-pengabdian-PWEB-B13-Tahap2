@@ -60,13 +60,8 @@ app.use((req, res, next) => {
 // ─── Routes ───
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-<<<<<<< HEAD
 app.use('/pengabdian', pengabdianRouter);
 app.use('/undangan', undanganRouter);
-
-=======
-app.use('/pengabdian', require('./routes/pengabdian'));
->>>>>>> athaya
 
 
 // ─── Error Handlers ───

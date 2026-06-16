@@ -112,6 +112,20 @@
     .dark .empty-title { color: #d1e0d8; }
     .dark .empty-desc { color: #9ca3af; }
     .dark .stat-value { color: #d1e0d8; }
+
+  /* ── Stepper Classes ── */
+  .step-circle { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2; border: 3px solid #fff; }
+  .step-circle.active { background: var(--unand-green); box-shadow: 0 0 0 1px var(--unand-green); }
+  .step-circle.inactive { background: #e5e7eb; box-shadow: 0 0 0 1px #e5e7eb; }
+  .step-circle.inactive-white { background: #fff; box-shadow: 0 0 0 1px #d1d5db; }
+  
+  .step-text { font-size: 0.65rem; }
+  .step-text.active { font-weight: 700; color: var(--unand-green); }
+  .step-text.inactive { font-weight: 500; color: #9ca3af; }
+  
+  .step-line { height: 3px; flex: 1; margin: -16px -15% 0 -15%; z-index: 1; border-radius: 2px; }
+  .step-line.active { background: var(--unand-green); }
+  .step-line.inactive { background: #e5e7eb; }
   </style>
 <div style="max-width:1280px; margin:0 auto;">
 
@@ -232,12 +246,6 @@
             <h2><%= isAdmin ? 'Pengabdian Terbaru — Semua Dosen' : 'Pengabdian Terbaru Anda' %></h2>
             <p>5 kegiatan pengabdian yang paling baru diinput ke sistem.</p>
           </div>
-          <% if (!isAdmin) { %>
-          <a href="/pengabdian/create" style="background:var(--unand-green);color:#fff;padding:8px 16px;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-            Tambah
-          </a>
-          <% } %>
         </div>
 
         <% if (recentServices.length === 0) { %>
@@ -296,38 +304,38 @@
                   <div style="display:flex; align-items:center; gap:0px; width:100%;">
                     <!-- Step 1 -->
                     <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; position:relative;">
-                      <div style="width:22px; height:22px; border-radius:50%; background:<%= s.status === 'proposed' || s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#e5e7eb' %>; display:flex; align-items:center; justify-content:center; z-index:2; border: 3px solid #fff; box-shadow: 0 0 0 1px <%= s.status === 'proposed' || s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#e5e7eb' %>;">
+                      <div class="step-circle <%= s.status === 'proposed' || s.status === 'ongoing' || s.status === 'completed' ? 'active' : 'inactive' %>">
                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><polyline points="20 6 9 17 4 12"></polyline></svg>
                       </div>
-                      <span style="font-size:0.65rem; font-weight:700; color:<%= s.status === 'proposed' || s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#9ca3af' %>;">Diusulkan</span>
+                      <span class="step-text <%= s.status === 'proposed' || s.status === 'ongoing' || s.status === 'completed' ? 'active' : 'inactive' %>">Diusulkan</span>
                     </div>
                     
-                    <div style="height:3px; flex:1; background:<%= s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#e5e7eb' %>; margin: -16px -15% 0 -15%; z-index:1; border-radius:2px;"></div>
+                    <div class="step-line <%= s.status === 'ongoing' || s.status === 'completed' ? 'active' : 'inactive' %>"></div>
                     
                     <!-- Step 2 -->
                     <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; position:relative;">
-                      <div style="width:22px; height:22px; border-radius:50%; background:<%= s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#fff' %>; display:flex; align-items:center; justify-content:center; z-index:2; border: 3px solid #fff; box-shadow: 0 0 0 1px <%= s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#d1d5db' %>;">
+                      <div class="step-circle <%= s.status === 'ongoing' || s.status === 'completed' ? 'active' : 'inactive-white' %>">
                         <% if (s.status === 'ongoing' || s.status === 'completed') { %>
                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         <% } else { %>
                           <div style="width:6px; height:6px; border-radius:50%; background:#d1d5db;"></div>
                         <% } %>
                       </div>
-                      <span style="font-size:0.65rem; font-weight:<%= s.status === 'ongoing' || s.status === 'completed' ? '700' : '500' %>; color:<%= s.status === 'ongoing' || s.status === 'completed' ? 'var(--unand-green)' : '#9ca3af' %>;">Berjalan</span>
+                      <span class="step-text <%= s.status === 'ongoing' || s.status === 'completed' ? 'active' : 'inactive' %>">Berjalan</span>
                     </div>
 
-                    <div style="height:3px; flex:1; background:<%= s.status === 'completed' ? 'var(--unand-green)' : '#e5e7eb' %>; margin: -16px -15% 0 -15%; z-index:1; border-radius:2px;"></div>
+                    <div class="step-line <%= s.status === 'completed' ? 'active' : 'inactive' %>"></div>
                     
                     <!-- Step 3 -->
                     <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; position:relative;">
-                      <div style="width:22px; height:22px; border-radius:50%; background:<%= s.status === 'completed' ? 'var(--unand-green)' : '#fff' %>; display:flex; align-items:center; justify-content:center; z-index:2; border: 3px solid #fff; box-shadow: 0 0 0 1px <%= s.status === 'completed' ? 'var(--unand-green)' : '#d1d5db' %>;">
+                      <div class="step-circle <%= s.status === 'completed' ? 'active' : 'inactive-white' %>">
                         <% if (s.status === 'completed') { %>
                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         <% } else { %>
                           <div style="width:6px; height:6px; border-radius:50%; background:#d1d5db;"></div>
                         <% } %>
                       </div>
-                      <span style="font-size:0.65rem; font-weight:<%= s.status === 'completed' ? '700' : '500' %>; color:<%= s.status === 'completed' ? 'var(--unand-green)' : '#9ca3af' %>;">Selesai</span>
+                      <span class="step-text <%= s.status === 'completed' ? 'active' : 'inactive' %>">Selesai</span>
                     </div>
                   </div>
                 </td>

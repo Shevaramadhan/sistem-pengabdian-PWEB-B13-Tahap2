@@ -37,17 +37,19 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
           Edit
         </a>
-        <a href="/pengabdian/<%= service.id %>/upload" class="btn-ghost-sm" style="color: #0369a1; border-color: #bae6fd;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-          Upload Laporan
-        </a>
+        <% if (service.status === 'ongoing') { %>
+          <a href="/pengabdian/<%= service.id %>/upload" class="btn-ghost-sm" style="color: #0369a1; border-color: #bae6fd;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            Upload Laporan
+          </a>
+        <% } %>
         <form action="/pengabdian/<%= service.id %>/delete" method="POST" style="display: inline;" onsubmit="return confirm('Yakin ingin menghapus pengabdian ini?');">
           <button type="submit" class="btn-ghost-sm" style="color: #dc2626; border-color: #fca5a5;">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
             Hapus
           </button>
         </form>
-        <% if (service.report_file) { %>
+        <% if (service.report_file && service.status === 'ongoing') { %>
           <form action="/pengabdian/<%= service.id %>/finalisasi" method="POST" style="display: inline;" onsubmit="return confirm('Setelah difinalisasi, data tidak bisa diubah lagi. Lanjutkan?');">
             <button type="submit" class="btn-primary" style="padding: 6px 14px; font-size: 0.78rem;">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -143,8 +145,10 @@
         <div style="border: 2px dashed #d1e8d9; border-radius: 8px; padding: 20px; text-align: center; color: #6b7280;">
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="display: block; margin: 0 auto 8px;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
           <p style="font-size: 0.82rem; margin: 0 0 10px;">Belum ada laporan yang diupload.</p>
-          <% if (service.status !== 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
+          <% if (service.status === 'ongoing' && (isAdmin || service.created_by === locals.user?.id)) { %>
             <a href="/pengabdian/<%= service.id %>/upload" class="btn-ghost-sm">Upload Sekarang</a>
+          <% } else if (service.status === 'proposed') { %>
+            <span style="font-size: 0.8rem; color: #d97706; background: #fffbeb; padding: 4px 8px; border-radius: 4px;">Persetujuan admin (Status: Berjalan) diperlukan untuk mengupload laporan.</span>
           <% } %>
         </div>
       <% } %>

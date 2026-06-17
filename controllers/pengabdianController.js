@@ -335,8 +335,8 @@ const getViewFormUploadLaporan = async (req, res, next) => {
     const role    = req.session.user?.role;
     const service = res.locals.service;
 
-    if (service.status === 'completed') {
-      return res.status(403).render("error", { message: "Pengabdian sudah difinalisasi, tidak bisa upload laporan baru." });
+    if (service.status !== 'ongoing') {
+      return res.status(403).render("error", { message: "Hanya pengabdian berstatus Berjalan yang dapat mengupload laporan." });
     }
 
     res.render("pengabdian/upload", {
@@ -360,8 +360,8 @@ const uploadLaporan = async (req, res, next) => {
 
   const connection = await db.getConnection();
   try {
-    if (service.status === 'completed') {
-      return res.status(403).json({ status: 'error', message: 'Pengabdian sudah difinalisasi.' });
+    if (service.status !== 'ongoing') {
+      return res.status(403).json({ status: 'error', message: 'Hanya pengabdian berstatus Berjalan yang dapat mengupload laporan.' });
     }
 
     if (!req.file) {
@@ -399,8 +399,8 @@ const finalizePengabdian = async (req, res, next) => {
 
   const connection = await db.getConnection();
   try {
-    if (service.status === 'completed') {
-      return res.status(400).json({ status: 'error', message: 'Pengabdian sudah difinalisasi.' });
+    if (service.status !== 'ongoing') {
+      return res.status(400).json({ status: 'error', message: 'Hanya pengabdian berstatus Berjalan yang dapat difinalisasi.' });
     }
 
     // Cek laporan sudah diupload sebelum finalisasi

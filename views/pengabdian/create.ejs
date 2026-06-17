@@ -27,7 +27,7 @@
 
     <form action="/pengabdian" method="POST" enctype="multipart/form-data">
       <div class="form-group">
-        <label class="form-label" for="title">Judul Pengabdian</label>
+        <label class="form-label" for="title">Judul Pengabdian <span style="color:red;">*</span></label>
         <input type="text" id="title" name="title" class="form-input" value="<%= locals.old?.title || '' %>" required>
       </div>
       
@@ -38,13 +38,13 @@
       </div>
       
       <div class="form-group">
-        <label class="form-label" for="location">Lokasi Pelaksanaan</label>
+        <label class="form-label" for="location">Lokasi Pelaksanaan <span style="color:red;">*</span></label>
         <input type="text" id="location" name="location" class="form-input" value="<%= locals.old?.location || '' %>" required>
       </div>
       
       <div class="form-grid-2">
         <div class="form-group">
-          <label class="form-label" for="start_date">Tanggal Mulai</label>
+          <label class="form-label" for="start_date">Tanggal Mulai <span style="color:red;">*</span></label>
           <input type="date" id="start_date" name="start_date" class="form-input" value="<%= locals.old?.start_date || '' %>" required>
         </div>
         <div class="form-group">
@@ -55,8 +55,8 @@
       </div>
       
       <div class="form-group">
-        <label class="form-label" for="proposal_file">Unggah Proposal (PDF)</label>
-        <input type="file" id="proposal_file" name="proposal_file" class="form-input" accept="application/pdf" style="padding: 10px;">
+        <label class="form-label" for="proposal_file">Unggah Proposal (PDF) <span style="color:red;">*</span></label>
+        <input type="file" id="proposal_file" name="proposal_file" class="form-input" accept="application/pdf" style="padding: 10px;" required>
         <div class="form-hint">Maksimal 10 MB. Wajib diisi saat mengusulkan pengabdian.</div>
       </div>
 

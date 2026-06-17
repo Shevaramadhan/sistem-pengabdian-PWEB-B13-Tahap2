@@ -4,10 +4,13 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": "nodemon ./bin/www"
+    "dev": "nodemon ./bin/www",
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^1.41.3",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "dotenv": "^17.4.2",
@@ -20,8 +23,12 @@
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "multer": "^2.1.1",
+    "multer-storage-cloudinary": "^4.0.0",
     "mysql2": "^3.22.3",
     "pdfkit": "^0.18.0",
     "pdfkit-table": "^0.2.11"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.0"
   }
 }

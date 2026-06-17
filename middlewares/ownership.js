@@ -51,7 +51,10 @@ function respondError(req, res, statusCode, message) {
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
     return res.status(statusCode).json({ status: 'error', message });
   }
-  return res.status(statusCode).render("error", { message });
+  return res.status(statusCode).render("error", { 
+    message, 
+    error: { status: statusCode, stack: '' } 
+  });
 }
 
 module.exports = {

@@ -1,0 +1,70 @@
+const { test, expect } = require('@playwright/test');
+const path = require('path');
+
+test.describe('Modul Pengabdian - Edit', () => {
+
+  let dummyTitle;
+
+  test.beforeEach(async ({ page }) => {
+    // 1. Login
+    await page.goto('/login');
+    await page.fill('input[name="username"]', 'sheva');
+    await page.fill('input[name="password"]', 'dosen123');
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL('/home');
+
+    // 2. Buat data dummy khusus untuk diedit agar terisolasi
+    dummyTitle = `Pengabdian Khusus Edit ${Date.now()}`;
+    await page.goto('/pengabdian/create');
+    await page.fill('input[name="title"]', dummyTitle);
+    await page.fill('input[name="location"]', 'Desa Testing E2E');
+    await page.fill('input[name="start_date"]', '2026-06-01');
+    const filePath = path.join(__dirname, '..', 'fixtures', 'dummy.pdf');
+    await page.setInputFiles('input[name="proposal_file"]', filePath);
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL(/\/pengabdian/);
+  });
+
+  test('Gagal mengedit pengabdian jika data dihapus menjadi kosong', async ({ page }) => {
+    await page.goto('/pengabdian');
+    
+    const row = page.locator('tr', { hasText: dummyTitle }).first();
+    await row.locator('a[title="Edit"]').click();
+    
+    await page.evaluate(() => {
+      document.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+    });
+    await page.fill('input[name="title"]', '');
+    await page.fill('input[name="location"]', '');
+    
+    const dialogMsg = new Promise(resolve => {
+      page.once('dialog', dialog => {
+        resolve(dialog.message());
+        dialog.accept();
+      });
+    });
+
+    await page.click('button[type="submit"]');
+    
+    const msg = await dialogMsg;
+    expect(msg).toContain('Judul wajib diisi');
+    expect(msg).toContain('Lokasi wajib diisi');
+  });
+
+  test('Harus bisa mengedit pengabdian dengan data benar', async ({ page }) => {
+    await page.goto('/pengabdian');
+    
+    const row = page.locator('tr', { hasText: dummyTitle }).first();
+    await row.locator('a[title="Edit"]').click();
+    
+    const updatedTitle = `${dummyTitle} (Updated)`;
+    await page.fill('input[name="title"]', updatedTitle);
+    await page.click('button[type="submit"]');
+    
+    await page.waitForURL(/\/pengabdian\/\d+/); // Tunggu redirect ke detail
+    await page.goto('/pengabdian');
+    
+    await expect(page.locator('tbody').locator(`text="${updatedTitle}"`).first()).toBeVisible();
+  });
+
+});

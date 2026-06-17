@@ -184,7 +184,10 @@ const getViewFormCreatePengabdian = (req, res) => {
 // ── POST /pengabdian — Simpan data pengabdian baru ──
 const createPengabdian = async (req, res, next) => {
   const { title, description, location, start_date, end_date, funding_source } = req.body;
-  const proposalFile = req.file ? `/uploads/proposals/${req.file.filename}` : null;
+  let proposalFile = null;
+  if (req.file) {
+    proposalFile = req.file.path && req.file.path.startsWith('http') ? req.file.path : `/uploads/proposals/${req.file.filename}`;
+  }
   let status = req.body.status;
   const isAdmin = req.session.user?.role === "admin";
   if (!isAdmin) {
@@ -196,6 +199,7 @@ const createPengabdian = async (req, res, next) => {
   if (!location?.trim()) errors.push("Lokasi wajib diisi.");
   if (!start_date)       errors.push("Tanggal mulai wajib diisi.");
   if (!status)           errors.push("Status wajib dipilih.");
+  if (!proposalFile)     errors.push("File Proposal (PDF) wajib diunggah saat membuat pengabdian.");
 
   if (errors.length > 0) {
     return res.status(400).json({ status: 'error', message: errors.join(" ") });
@@ -252,9 +256,15 @@ const getViewFormUpdatePengabdian = async (req, res, next) => {
 const updatePengabdian = async (req, res, next) => {
   const { id } = req.params;
   const { title, description, location, start_date, end_date, funding_source } = req.body;
-  const proposalFile = req.file ? `/uploads/proposals/${req.file.filename}` : null;
+  let proposalFile = null;
+  if (req.file) {
+    proposalFile = req.file.path && req.file.path.startsWith('http') ? req.file.path : `/uploads/proposals/${req.file.filename}`;
+  }
   let status = req.body.status;
   const isAdmin = req.session.user?.role === "admin";
+  if (!isAdmin) {
+    status = 'dummy'; // bypass validasi, nilai asli akan diambil dari DB di bawah
+  }
 
   const errors = [];
   if (!title?.trim())    errors.push("Judul wajib diisi.");
@@ -358,17 +368,19 @@ const uploadLaporan = async (req, res, next) => {
       return res.status(400).json({ status: 'error', message: 'File laporan wajib dipilih.' });
     }
 
-    // Hapus file lama jika ada
-    if (service.report_file) {
+    // Hapus file lama jika ada (hanya jika local file, bukan URL)
+    if (service.report_file && !service.report_file.startsWith('http')) {
       const oldPath = path.join(__dirname, "../public/uploads/laporan", service.report_file);
       if (fs.existsSync(oldPath)) {
         try { fs.unlinkSync(oldPath); } catch (e) { console.error(e); }
       }
     }
 
+    const reportFile = (req.file.path && req.file.path.startsWith('http')) ? req.file.path : req.file.filename;
+
     await connection.query(
       "UPDATE community_services SET report_file=?, updated_at=NOW() WHERE id=?",
-      [req.file.filename, id]
+      [reportFile, id]
     );
 
     res.status(200).json({ status: 'success', message: 'Laporan berhasil diupload.', redirectUrl: `/pengabdian/${id}?success=laporan_uploaded` });

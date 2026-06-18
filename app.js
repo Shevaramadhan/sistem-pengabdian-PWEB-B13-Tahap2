@@ -13,16 +13,12 @@ var pengabdianRouter = require('./routes/pengabdian');
 var undanganRouter = require('./routes/undangan');
 const { notFoundHandler, errorHandler } = require('./middlewares/error');
 
-
-
 var app = express();
 
-// View engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(ejsLayouts);
-app.set('layout', false); // Matikan layout global — tiap view yang butuh layout set sendiri
-
+app.set('layout', false);
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -30,7 +26,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session configuration
 const sessionStore = new MySQLStore({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -45,31 +40,22 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 // 1 hari
+    maxAge: 1000 * 60 * 60 * 24
   }
 }));
 
-// ─── Global locals: inject user session dan req ke semua EJS views ───
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
   res.locals.isAuthenticated = !!req.session.userId;
-  res.locals.req = req; // Agar views bisa baca req.query
+  res.locals.req = req;
   next();
 });
 
-// ─── Routes ───
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-<<<<<<< HEAD
 app.use('/pengabdian', pengabdianRouter);
 app.use('/undangan', undanganRouter);
 
-=======
-app.use('/pengabdian', require('./routes/pengabdian'));
->>>>>>> athaya
-
-
-// ─── Error Handlers ───
 app.use(notFoundHandler);
 app.use(errorHandler);
 

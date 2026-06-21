@@ -103,6 +103,12 @@ const getAllPengabdian = async (req, res, next) => {
       search,
       stats,
       availableYears,
+      pagination: {
+        page,
+        limit,
+        totalPages,
+        totalItems: total,
+      },
       filters: {
         search,
         status: statusFilter,

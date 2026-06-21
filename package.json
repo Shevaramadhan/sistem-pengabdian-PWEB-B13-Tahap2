@@ -23,5 +23,8 @@
     "mysql2": "^3.22.3",
     "pdfkit": "^0.18.0",
     "pdfkit-table": "^0.2.11"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

@@ -8,23 +8,38 @@ const PdfTable = require("pdfkit-table");
 const getAllPengabdian = async (req, res, next) => {
   const connection = await db.getConnection();
   try {
-    const userId  = req.session.userId;
-    const role    = req.session.user?.role;
+    const userId = req.session.userId;
+    const role = req.session.user?.role;
     const isAdmin = role === "admin";
 
     const search = req.query.search || "";
-    const page   = parseInt(req.query.page) || 1;
-    const limit  = 10;
+    const statusFilter = req.query.status || "";
+    const yearFilter = req.query.year || "";
+    const sortOrder = req.query.sort || "newest";
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5;
     const offset = (page - 1) * limit;
 
-    let whereClause = isAdmin ? "" : "WHERE cs.created_by = ?";
-    let params      = isAdmin ? [] : [userId];
+    let whereClause = isAdmin ? "WHERE 1=1" : "WHERE cs.created_by = ?";
+    let params = isAdmin ? [] : [userId];
 
     if (search) {
-      whereClause += isAdmin
-        ? "WHERE (cs.title LIKE ? OR cs.location LIKE ?)"
-        : " AND (cs.title LIKE ? OR cs.location LIKE ?)";
+      whereClause += " AND (cs.title LIKE ? OR cs.location LIKE ?)";
       params.push(`%${search}%`, `%${search}%`);
+    }
+    if (statusFilter) {
+      whereClause += " AND cs.status = ?";
+      params.push(statusFilter);
+    }
+    if (yearFilter) {
+      whereClause += " AND YEAR(cs.start_date) = ?";
+      params.push(yearFilter);
+    }
+
+    let orderBy = "ORDER BY cs.created_at DESC";
+    if (sortOrder === "oldest") {
+      orderBy = "ORDER BY cs.created_at ASC";
     }
 
     const countSql = `
@@ -35,28 +50,54 @@ const getAllPengabdian = async (req, res, next) => {
 
     const dataSql = `
       SELECT cs.id, cs.title, cs.location, cs.start_date, cs.end_date,
-             cs.status, cs.funding_source, cs.created_at, cs.created_by,
-             u.name AS creator_name
+             cs.status, cs.funding_source, cs.budget, cs.proposal_file,
+             cs.created_at, cs.created_by,
+             u.name AS creator_name,
+             (SELECT COUNT(*) FROM community_service_members csm WHERE csm.community_service_id = cs.id) AS member_count
       FROM community_services cs
       JOIN users u ON cs.created_by = u.id
       ${whereClause}
-      ORDER BY cs.created_at DESC
+      ${orderBy}
       LIMIT ? OFFSET ?`;
     const [rows] = await connection.query(dataSql, [...params, limit, offset]);
 
+    const statsWhere = isAdmin ? "" : "WHERE created_by = ?";
+    const statsParams = isAdmin ? [] : [userId];
+    const [[stats]] = await connection.query(
+      `SELECT 
+        COUNT(*) AS total,
+        SUM(status = 'proposed') AS proposed,
+        SUM(status IN ('verified', 'ongoing')) AS ongoing,
+        SUM(status = 'completed') AS completed
+       FROM community_services ${statsWhere}`,
+      statsParams
+    );
+
+    const [yearsData] = await connection.query(`SELECT DISTINCT YEAR(start_date) AS yr FROM community_services ORDER BY yr DESC`);
+    const availableYears = yearsData.map(y => y.yr).filter(y => y);
+
     res.render("pengabdian/index", {
-      layout: "layouts/pengabdian",
+      layout: false,
       pageTitle: "Daftar Pengabdian",
       user: req.session.user,
       isAdmin,
       services: rows,
-      search,
-      pagination: {
-        page,
-        totalPages: Math.ceil(total / limit),
-        total,
-        limit,
+      stats: {
+        total: stats.total || 0,
+        proposed: stats.proposed || 0,
+        ongoing: stats.ongoing || 0,
+        completed: stats.completed || 0
       },
+      filters: {
+        search,
+        status: statusFilter,
+        year: yearFilter,
+        sort: sortOrder,
+        totalItems: total,
+        page,
+        totalPages: Math.ceil(total / limit) || 1
+      },
+      availableYears
     });
   } catch (error) {
     console.error("Error Get All Pengabdian:", error);
@@ -71,7 +112,7 @@ const getPengabdianById = async (req, res, next) => {
   const connection = await db.getConnection();
   try {
     const { id } = req.params;
-    const userId  = req.session.userId;
+    const userId = req.session.userId;
     const isAdmin = req.session.user?.role === "admin";
     const service = res.locals.service;
 
@@ -115,15 +156,25 @@ const getPengabdianById = async (req, res, next) => {
 };
 
 // ── GET /pengabdian/create — Tampilkan form tambah pengabdian ──
-const getViewFormCreatePengabdian = (req, res) => {
-  res.render("pengabdian/create", {
-    layout: "layouts/pengabdian",
-    pageTitle: "Tambah Pengabdian",
-    user: req.session.user,
-    isAdmin: req.session.user?.role === "admin",
-    errors: [],
-    old: {},
-  });
+const getViewFormCreatePengabdian = async (req, res, next) => {
+  try {
+    const connection = await db.getConnection();
+    const [lecturers] = await connection.query(`SELECT l.id, u.name, l.nidn FROM lecturers l JOIN users u ON l.user_id = u.id ORDER BY u.name ASC`);
+    connection.release();
+
+    res.render("pengabdian/create", {
+      layout: false,
+      pageTitle: "Tambah Pengabdian",
+      user: req.session.user,
+      isAdmin: req.session.user?.role === "admin",
+      errors: {},
+      oldInput: {},
+      lecturers
+    });
+  } catch (error) {
+    console.error("Error Get View Form Create Pengabdian:", error);
+    next(error);
+  }
 };
 
 // ── POST /pengabdian — Simpan data pengabdian baru ──
@@ -136,10 +187,10 @@ const createPengabdian = async (req, res, next) => {
   }
   const errors = [];
 
-  if (!title?.trim())    errors.push("Judul wajib diisi.");
+  if (!title?.trim()) errors.push("Judul wajib diisi.");
   if (!location?.trim()) errors.push("Lokasi wajib diisi.");
-  if (!start_date)       errors.push("Tanggal mulai wajib diisi.");
-  if (!status)           errors.push("Status wajib dipilih.");
+  if (!start_date) errors.push("Tanggal mulai wajib diisi.");
+  if (!status) errors.push("Status wajib dipilih.");
 
   if (errors.length > 0) {
     return res.status(400).json({ status: 'error', message: errors.join(" ") });
@@ -174,7 +225,7 @@ const createPengabdian = async (req, res, next) => {
 // ── GET /pengabdian/:id/edit — Tampilkan form edit pengabdian ──
 const getViewFormUpdatePengabdian = async (req, res, next) => {
   try {
-    const role    = req.session.user?.role;
+    const role = req.session.user?.role;
     const service = res.locals.service;
 
     res.render("pengabdian/edit", {
@@ -199,10 +250,10 @@ const updatePengabdian = async (req, res, next) => {
   const isAdmin = req.session.user?.role === "admin";
 
   const errors = [];
-  if (!title?.trim())    errors.push("Judul wajib diisi.");
+  if (!title?.trim()) errors.push("Judul wajib diisi.");
   if (!location?.trim()) errors.push("Lokasi wajib diisi.");
-  if (!start_date)       errors.push("Tanggal mulai wajib diisi.");
-  if (!status)           errors.push("Status wajib dipilih.");
+  if (!start_date) errors.push("Tanggal mulai wajib diisi.");
+  if (!status) errors.push("Status wajib dipilih.");
 
   if (errors.length > 0) {
     return res.status(400).json({ status: 'error', message: errors.join(" ") });
@@ -264,7 +315,7 @@ const deletePengabdian = async (req, res, next) => {
 // ── GET /pengabdian/:id/upload — Tampilkan form upload laporan ──
 const getViewFormUploadLaporan = async (req, res, next) => {
   try {
-    const role    = req.session.user?.role;
+    const role = req.session.user?.role;
     const service = res.locals.service;
 
     if (service.status === 'completed') {
@@ -356,13 +407,13 @@ const finalizePengabdian = async (req, res, next) => {
 const exportExcel = async (req, res, next) => {
   const connection = await db.getConnection();
   try {
-    const userId  = req.session.userId;
-    const role    = req.session.user?.role;
+    const userId = req.session.userId;
+    const role = req.session.user?.role;
     const isAdmin = role === "admin";
-    const search  = req.query.search || "";
+    const search = req.query.search || "";
 
     let whereClause = isAdmin ? "WHERE 1=1" : "WHERE cs.created_by = ?";
-    let params      = isAdmin ? [] : [userId];
+    let params = isAdmin ? [] : [userId];
 
     if (search) {
       whereClause += " AND (cs.title LIKE ? OR cs.location LIKE ?)";
@@ -427,13 +478,13 @@ const exportExcel = async (req, res, next) => {
 const exportPdf = async (req, res, next) => {
   const connection = await db.getConnection();
   try {
-    const userId  = req.session.userId;
-    const role    = req.session.user?.role;
+    const userId = req.session.userId;
+    const role = req.session.user?.role;
     const isAdmin = role === "admin";
-    const search  = req.query.search || "";
+    const search = req.query.search || "";
 
     let whereClause = isAdmin ? "WHERE 1=1" : "WHERE cs.created_by = ?";
-    let params      = isAdmin ? [] : [userId];
+    let params = isAdmin ? [] : [userId];
 
     if (search) {
       whereClause += " AND (cs.title LIKE ? OR cs.location LIKE ?)";

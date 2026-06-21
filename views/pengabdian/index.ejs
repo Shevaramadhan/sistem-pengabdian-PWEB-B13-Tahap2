@@ -1,140 +1,3 @@
-<<<<<<< HEAD
-<div class="page-card">
-  <div class="page-card-header">
-    <div>
-      <h2>Daftar Pengabdian</h2>
-      <p>Kelola data pengabdian kepada masyarakat.</p>
-    </div>
-    <div style="display: flex; gap: 8px;">
-      <a href="/pengabdian/export/excel<%= search ? '?search=' + search : '' %>" class="btn-ghost-sm" style="color: #15803d; border-color: #bbf7d0; background: #f0fdf4;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-        Export Excel
-      </a>
-      <a href="/pengabdian/export/pdf<%= search ? '?search=' + search : '' %>" target="_blank" class="btn-ghost-sm" style="color: #b91c1c; border-color: #fecaca; background: #fef2f2;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-        Cetak PDF
-      </a>
-      <% if (!isAdmin) { %>
-        <a href="/pengabdian/create" class="btn-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 12h14"/><path d="M12 5v14"/>
-          </svg>
-          Tambah Baru
-        </a>
-      <% } %>
-    </div>
-  </div>
-
-
-  <div class="page-card-body">
-    <!-- Flash Messages -->
-    <% if (typeof req !== 'undefined' && req.query && req.query.success) { %>
-      <div class="flash-success">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <span>Data berhasil disimpan.</span>
-      </div>
-    <% } %>
-
-    <!-- Search Form -->
-    <form action="/pengabdian" method="GET" class="search-bar mb-4">
-      <div class="search-wrap flex-1">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="text" name="search" value="<%= search || '' %>" placeholder="Cari judul atau lokasi..." class="search-input w-full">
-      </div>
-      <button type="submit" class="btn-ghost-sm" style="padding: 8px 16px;">Cari</button>
-      <% if (search) { %>
-        <a href="/pengabdian" class="btn-ghost-sm text-muted-foreground">Reset</a>
-      <% } %>
-    </form>
-
-    <% if (services && services.length > 0) { %>
-      <div style="overflow-x: auto;">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Judul Pengabdian</th>
-              <th>Lokasi</th>
-              <th>Tanggal</th>
-              <th>Status</th>
-              <th style="text-align: center;">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% services.forEach((service, index) => { %>
-              <tr>
-                <td style="color: #9ca3af;"><%= (pagination.page - 1) * pagination.limit + index + 1 %></td>
-                <td>
-                  <div style="font-weight: 500; color: var(--u-text); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<%= service.title %>">
-                    <%= service.title %>
-                  </div>
-                  <% if (isAdmin) { %>
-                    <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">Oleh: <%= service.creator_name %></div>
-                  <% } %>
-                </td>
-                <td><%= service.location %></td>
-                <td style="white-space: nowrap;"><%= new Date(service.start_date).toLocaleDateString('id-ID') %></td>
-                <td>
-                  <% if (service.status === 'proposed') { %>
-                    <span class="badge b-proposed">Diusulkan</span>
-                  <% } else if (service.status === 'ongoing') { %>
-                    <span class="badge b-ongoing">Berjalan</span>
-                  <% } else { %>
-                    <span class="badge b-completed">Selesai</span>
-                  <% } %>
-                </td>
-                <td style="text-align: center; white-space: nowrap;">
-                  <a href="/pengabdian/<%= service.id %>" class="btn-ghost-sm" title="Lihat Detail">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                  </a>
-                  <% if (isAdmin || service.created_by === locals.user?.id) { %>
-                    <a href="/pengabdian/<%= service.id %>/edit" class="btn-ghost-sm" title="Edit">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                    </a>
-                    <form action="/pengabdian/<%= service.id %>/delete" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
-                      <button type="submit" class="btn-ghost-sm" style="color: #dc2626;" title="Hapus">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                      </button>
-                    </form>
-                  <% } %>
-                </td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <% if (pagination.totalPages > 1) { %>
-        <div class="mt-6 flex justify-between items-center">
-          <div class="text-sm text-muted-foreground">
-            Menampilkan <%= (pagination.page - 1) * pagination.limit + 1 %> - <%= Math.min(pagination.page * pagination.limit, pagination.total) %> dari <%= pagination.total %> data
-          </div>
-          <div class="pagination">
-            <a href="/pengabdian?page=<%= pagination.page - 1 %><%= search ? '&search=' + search : '' %>" class="pg-btn" <%= pagination.page <= 1 ? 'disabled' : '' %>>&laquo;</a>
-            <% for(let i = 1; i <= pagination.totalPages; i++) { %>
-              <a href="/pengabdian?page=<%= i %><%= search ? '&search=' + search : '' %>" class="pg-btn <%= i === pagination.page ? 'active' : '' %>"><%= i %></a>
-            <% } %>
-            <a href="/pengabdian?page=<%= pagination.page + 1 %><%= search ? '&search=' + search : '' %>" class="pg-btn" <%= pagination.page >= pagination.totalPages ? 'disabled' : '' %>>&raquo;</a>
-          </div>
-        </div>
-      <% } %>
-
-    <% } else { %>
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ug)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-        </div>
-        <h3>Belum Ada Data</h3>
-        <p>Tidak ada data pengabdian yang sesuai dengan kriteria.</p>
-        <% if (!isAdmin && !search) { %>
-          <a href="/pengabdian/create" class="btn-primary">Tambah Pengabdian Pertama</a>
-        <% } %>
-      </div>
-    <% } %>
-  </div>
-</div>
-=======
 <!doctype html>
 <html lang="id">
 <head>
@@ -165,170 +28,199 @@
   <meta name="description" content="Daftar Pengabdian Dosen Universitas Andalas"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/assets/styles.css"/>
   <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
   <style>
     :root {
-      --unand-green:       #006B35;
-      --unand-green-light: #1a8a4a;
-      --unand-green-pale:  #e8f5ed;
-      --unand-gold:        #C8A951;
-      --unand-gold-dark:   #96782e;
-      --unand-gold-pale:   #fdf8ec;
+      --ug: #008556;
+      --ug-dark: #006440;
+      --ug-pale: #e8f5ed;
+      --ug-mid: #c8e8d6;
+      --page-bg: #f3faf6;
     }
-    body { font-family: 'Inter', sans-serif; }
+    html.dark {
+      --ug: #04b073;
+      --ug-dark: #02945f;
+      --ug-pale: #062618;
+      --ug-mid: #0b3420;
+      --page-bg: #07100c;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--page-bg);
+      color: #1e293b;
+    }
+    html.dark body { color: #e2e8f0; }
 
     /* ── Stat cards ── */
     .stat-card {
       background: #fff;
-      border-radius: 12px;
-      padding: 16px 20px;
-      border: 1px solid #e8edf0;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border-radius: 20px;
+      padding: 20px 24px;
+      border: 1px solid rgba(0,133,86,0.08);
+      box-shadow: 0 8px 24px rgba(0,133,86,0.05);
       display: flex;
       align-items: center;
-      gap: 14px;
-      transition: box-shadow 0.2s, transform 0.2s;
+      gap: 18px;
+      transition: box-shadow 0.3s, transform 0.3s;
     }
-    .stat-card:hover { box-shadow: 0 4px 16px rgba(0,107,53,0.12); transform: translateY(-1px); }
-    .dark .stat-card { background: #1e2a24; border-color: #2d3f35; }
+    .stat-card:hover { box-shadow: 0 16px 40px rgba(0,133,86,0.1); transform: translateY(-3px); }
+    html.dark .stat-card { background: #0f1c15; border-color: #1a3024; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
     .stat-icon {
-      width: 44px; height: 44px; border-radius: 10px;
+      width: 52px; height: 52px; border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1; color: #1f2937; }
-    .dark .stat-value { color: #f3f4f6; }
-    .stat-label { font-size: 0.75rem; color: #6b7280; margin-top: 2px; }
-    .dark .stat-label { color: #9ca3af; }
+    .stat-value { font-size: 2rem; font-weight: 800; line-height: 1; color: #0f172a; letter-spacing: -0.03em; }
+    html.dark .stat-value { color: #f8fafc; }
+    .stat-label { font-size: 0.8rem; color: #64748b; margin-top: 4px; font-weight: 500; }
+    html.dark .stat-label { color: #94a3b8; }
 
     /* ── Filter Area ── */
     .filter-card {
       background: #fff;
-      border: 1px solid #e8edf0;
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 20px;
+      border: 1px solid rgba(0,133,86,0.08);
+      border-radius: 18px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 16px rgba(0,133,86,0.03);
     }
-    .dark .filter-card { background: #1e2a24; border-color: #2d3f35; }
+    html.dark .filter-card { background: #0f1c15; border-color: #1a3024; }
 
     /* Input premium */
     .premium-input {
       width: 100%;
-      padding: 8px 12px;
-      font-size: 0.85rem;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      background-color: #fff;
-      color: #1f2937;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      padding: 11px 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      background-color: #f8fafc;
+      color: #1e293b;
+      transition: all 0.2s ease;
     }
+    .premium-input:hover { border-color: #94a3b8; }
     .premium-input:focus {
       outline: none;
-      border-color: var(--unand-green);
-      box-shadow: 0 0 0 3px rgba(0, 107, 53, 0.15);
+      background: #fff;
+      border-color: var(--ug);
+      box-shadow: 0 0 0 4px rgba(0, 133, 86, 0.1);
     }
-    .dark .premium-input {
-      background-color: #121b16;
-      border-color: #2d3f35;
-      color: #f3f4f6;
+    html.dark .premium-input {
+      background-color: #0b140f;
+      border-color: #1a3024;
+      color: #f8fafc;
     }
-    .dark .premium-input:focus {
-      border-color: var(--unand-gold);
-      box-shadow: 0 0 0 3px rgba(200, 169, 81, 0.2);
+    html.dark .premium-input:focus {
+      border-color: var(--ug);
+      box-shadow: 0 0 0 4px rgba(4, 176, 115, 0.15);
     }
 
     /* ── Table / Hybrid Card Style ── */
     .unand-card {
       background: #fff;
-      border: 1px solid #e8edf0;
-      border-radius: 14px;
+      border: 1px solid rgba(0,133,86,0.08);
+      border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      box-shadow: 0 10px 30px rgba(0,133,86,0.04);
     }
-    .dark .unand-card { background: #1e2a24; border-color: #2d3f35; }
+    html.dark .unand-card { background: #0f1c15; border-color: #1a3024; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     .unand-card-header {
-      padding: 20px 24px 16px;
-      border-bottom: 1px solid #f0f4f2;
+      padding: 24px 28px 20px;
+      border-bottom: 1px solid rgba(0,133,86,0.07);
       display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.6);
     }
-    .dark .unand-card-header { border-color: #2d3f35; }
-    .unand-card-header h2 { font-size: 1rem; font-weight: 600; color: var(--unand-green); margin: 0; }
-    .dark .unand-card-header h2 { color: #86c99e; }
-    .unand-card-header p { font-size: 0.8rem; color: #6b7280; margin: 4px 0 0; }
-    .dark .unand-card-header p { color: #9ca3af; }
+    html.dark .unand-card-header { border-color: #1a3024; background: transparent; }
+    .unand-card-header h2 { font-size: 1.15rem; font-weight: 700; color: var(--ug); margin: 0; letter-spacing: -0.01em; }
+    .unand-card-header p { font-size: 0.85rem; color: #64748b; margin: 4px 0 0; }
+    html.dark .unand-card-header p { color: #94a3b8; }
 
     /* ── Badges ── */
-    .badge-proposed { background: #fef9ec; color: #92400e; border: 1px solid #fde68a; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
-    .badge-verified { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
-    .badge-ongoing  { background: var(--unand-green-pale); color: var(--unand-green); border: 1px solid #a7d7b5; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
-    .badge-completed { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; }
-    
-    .dark .badge-proposed { background: #1f1700; color: #d4a437; border-color: #3a2e10; }
-    .dark .badge-verified { background: #08211b; color: #2dd4bf; border-color: #115e59; }
-    .dark .badge-ongoing  { background: #0b1f14; color: #5dbf85; border-color: #1a4028; }
-    .dark .badge-completed { background: #0f1825; color: #60a5fa; border-color: #1e3a6e; }
+    .badge-proposed { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; border-radius: 8px; padding: 4px 12px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; }
+    .badge-verified { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 8px; padding: 4px 12px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; }
+    .badge-ongoing  { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 8px; padding: 4px 12px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; }
+    .badge-completed { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 8px; padding: 4px 12px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; }
+    html.dark .badge-proposed { background: #2a1f06; color: #fbbf24; border-color: #553e08; }
+    html.dark .badge-verified { background: #08211b; color: #2dd4bf; border-color: #115e59; }
+    html.dark .badge-ongoing  { background: #062618; color: #34d399; border-color: #0b4b2e; }
+    html.dark .badge-completed { background: #0f172a; color: #60a5fa; border-color: #1e3a8a; }
 
-    .badge-pdf-yes { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; padding: 1px 6px; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
-    .badge-pdf-no  { background: #f3f4f6; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 6px; padding: 1px 6px; font-size: 0.7rem; font-weight: 500; display: inline-flex; align-items: center; }
-    .dark .badge-pdf-yes { background: #2d1010; color: #f87171; border-color: #7f1d1d; }
-    .dark .badge-pdf-no { background: #18221c; color: #4b5563; border-color: #2d3f35; }
+    .badge-pdf-yes { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 8px; padding: 3px 10px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .badge-pdf-no  { background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; border-radius: 8px; padding: 3px 10px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; }
+    html.dark .badge-pdf-yes { background: #2d1010; color: #f87171; border-color: #7f1d1d; }
+    html.dark .badge-pdf-no { background: #0f1c15; color: #475569; border-color: #1a3024; }
 
     /* ── Table styling ── */
     .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
     .data-table thead th {
-      background: var(--unand-green-pale);
-      color: var(--unand-green);
+      background: var(--ug-pale);
+      color: #00603e;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 12px 16px;
-      border-bottom: 2px solid #d1e8d9;
+      letter-spacing: 0.08em;
+      padding: 16px 18px;
     }
-    .dark .data-table thead th { background: #1e2a24; color: #86c99e; border-color: #2d3f35; }
-    .data-table tbody td { padding: 14px 16px; border-bottom: 1px solid #f0f4f2; font-size: 0.875rem; vertical-align: middle; }
-    .dark .data-table tbody td { border-color: #2d3f35; color: #d1e0d8; }
-    .data-table tbody tr:hover td { background: var(--unand-green-pale); }
-    .dark .data-table tbody tr:hover td { background: rgba(30,42,36,0.6); }
+    .data-table thead th:first-child { border-radius: 12px 0 0 12px; }
+    .data-table thead th:last-child  { border-radius: 0 12px 12px 0; }
+    html.dark .data-table thead th { background: #0b2618; color: #4ade80; }
+    .data-table tbody td { padding: 16px 18px; border-bottom: 1px solid rgba(0,133,86,0.06); font-size: 0.9rem; vertical-align: middle; transition: background 0.2s; }
+    html.dark .data-table tbody td { border-color: #1a3024; color: #cbd5e1; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: #f4fbf7; }
+    html.dark .data-table tbody tr:hover td { background: #0b1a13; }
+
+    /* ── Action Buttons in table ── */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--ug) 0%, var(--ug-dark) 100%);
+      color: #fff; padding: 10px 20px;
+      border-radius: 12px; font-size: 0.875rem; font-weight: 600; font-family: inherit;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 133, 86, 0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 133, 86, 0.35);
+    }
 
     /* ── Pagination styling ── */
     .pag-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 32px;
-      height: 32px;
-      padding: 0 6px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
+      min-width: 38px;
+      height: 38px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1.5px solid #e2e8f0;
       background: #fff;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: #374151;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #475569;
       text-decoration: none;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
-    .pag-btn:hover { background: #f3f4f6; border-color: #9ca3af; }
+    .pag-btn:hover { background: var(--ug-pale); border-color: var(--ug); color: var(--ug); transform: translateY(-1px); }
     .pag-btn.active {
-      background: var(--unand-green);
+      background: linear-gradient(135deg, var(--ug) 0%, var(--ug-dark) 100%);
       color: #fff;
-      border-color: var(--unand-green);
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(0, 133, 86, 0.3);
     }
-    .pag-btn.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-    .dark .pag-btn { background: #1e2a24; border-color: #2d3f35; color: #d1e0d8; }
-    .dark .pag-btn:hover { background: #26362e; border-color: #4a6353; }
-    .dark .pag-btn.active { background: var(--unand-green); color: #fff; border-color: var(--unand-green); }
+    .pag-btn.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+    html.dark .pag-btn { background: #0f1c15; border-color: #1a3024; color: #94a3b8; }
+    html.dark .pag-btn:hover { background: #0b2618; border-color: var(--ug); color: var(--ug); }
+    html.dark .pag-btn.active { background: linear-gradient(135deg, var(--ug) 0%, var(--ug-dark) 100%); border-color: transparent; color: #fff; }
 
-    .empty-title { color: #374151; }
-    .empty-desc { color: #9ca3af; }
-    .dark .empty-title { color: #d1e0d8; }
-    .dark .empty-desc { color: #8c9c91; }
+    .empty-title { color: #1e293b; font-weight: 700; }
+    .empty-desc { color: #64748b; }
+    html.dark .empty-title { color: #f8fafc; }
+    html.dark .empty-desc { color: #94a3b8; }
   </style>
 </head>
 <body>
@@ -637,5 +529,4 @@
   <script src="/assets/js/popover.js" defer></script>
   <script src="/assets/js/toast.js" defer></script>
 </body>
-</html>
->>>>>>> athaya
+</html>

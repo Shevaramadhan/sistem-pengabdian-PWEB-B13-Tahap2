@@ -2,9 +2,9 @@
   /* ── Sidebar Custom Styling ── */
   #sidebar {
     /* Mode Terang: Background sangat soft (putih sedikit hijau), teks gelap */
-    background-color: #fcfdfc !important;
-    border-right: 1px solid #e0e8e3 !important;
-    box-shadow: 4px 0 15px rgba(0, 107, 53, 0.03) !important;
+    background-color: #ffffff !important;
+    border-right: 1px solid rgba(0, 133, 86, 0.06) !important;
+    box-shadow: 4px 0 24px rgba(0, 133, 86, 0.02) !important;
   }
   
   /* Teks dan ikon Mode Terang */
@@ -16,36 +16,48 @@
   #sidebar footer button,
   #sidebar footer button span,
   #sidebar footer .text-muted-foreground {
-    color: #1a2e22 !important;
+    color: #1e293b !important;
   }
   
   #sidebar section a svg {
-    color: #4a6353 !important;
-    stroke: #4a6353 !important;
+    color: #64748b !important;
+    stroke: #64748b !important;
+    transition: all 0.2s ease;
   }
 
   /* Hover & Active Mode Terang */
+  #sidebar section a {
+    transition: all 0.2s ease !important;
+    border-radius: 12px !important;
+    margin: 0 12px !important;
+    padding: 10px 14px !important;
+  }
   #sidebar section a:hover {
-    background-color: #e8f0eb !important;
+    background-color: #f1f8f4 !important;
+    transform: translateX(4px);
+  }
+  #sidebar section a:hover svg {
+    color: #008556 !important;
+    stroke: #008556 !important;
   }
   #sidebar section a[aria-current="page"] {
-    background-color: #e8f0eb !important;
-    border-left: 3px solid #006B35 !important;
-    font-weight: 600 !important;
+    background: linear-gradient(135deg, #e8f5ed 0%, #d1ebe0 100%) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 12px rgba(0, 133, 86, 0.05) !important;
   }
   #sidebar section a[aria-current="page"] span {
-    color: #006B35 !important;
+    color: #00603e !important;
   }
   #sidebar section a[aria-current="page"] svg {
-    color: #006B35 !important;
-    stroke: #006B35 !important;
+    color: #008556 !important;
+    stroke: #008556 !important;
   }
   
   /* ── Mode Gelap (Dark Mode) ── */
   html.dark #sidebar {
-    background-color: #0f1a14 !important;
-    border-right: 1px solid #1a2e22 !important;
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2) !important;
+    background-color: #09120d !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4) !important;
   }
   
   html.dark #sidebar nav > header a,
@@ -55,32 +67,36 @@
   html.dark #sidebar section a span,
   html.dark #sidebar footer button,
   html.dark #sidebar footer button span {
-    color: #e0e8e3 !important;
+    color: #f8fafc !important;
   }
   
   html.dark #sidebar footer .text-muted-foreground {
-    color: #8c9c91 !important;
+    color: #94a3b8 !important;
   }
   
   html.dark #sidebar section a svg {
-    color: #8c9c91 !important;
-    stroke: #8c9c91 !important;
+    color: #94a3b8 !important;
+    stroke: #94a3b8 !important;
   }
   
   html.dark #sidebar section a:hover {
-    background-color: #1a2e22 !important;
+    background-color: #12221a !important;
+  }
+  html.dark #sidebar section a:hover svg {
+    color: #04b073 !important;
+    stroke: #04b073 !important;
   }
   
   html.dark #sidebar section a[aria-current="page"] {
-    background-color: #1a2e22 !important;
-    border-left: 3px solid #C8A951 !important;
+    background: linear-gradient(135deg, #0b2618 0%, #0d3220 100%) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
   }
   html.dark #sidebar section a[aria-current="page"] span {
-    color: #C8A951 !important;
+    color: #4ade80 !important;
   }
   html.dark #sidebar section a[aria-current="page"] svg {
-    color: #C8A951 !important;
-    stroke: #C8A951 !important;
+    color: #04b073 !important;
+    stroke: #04b073 !important;
   }
 </style>
 

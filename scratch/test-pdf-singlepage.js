@@ -1,189 +1,43 @@
-const db = require("../lib/db");
-const PDFDocument = require("pdfkit");
+const fs = require('fs');
+const path = require('path');
+const PDFDocument = require('pdfkit');
 
-// ── Helper: Dapatkan lecturer_id dari user yang login ──
-async function getLecturerId(connection, userId) {
-  const [[lecturer]] = await connection.query(
-    "SELECT id FROM lecturers WHERE user_id = ?",
-    [userId]
-  );
-  return lecturer ? lecturer.id : null;
-}
+// Mock data matching the real database query result
+const data = {
+  id: 1,
+  member_role: 'Anggota',
+  status: 'approved',
+  responded_at: new Date('2026-06-10T04:39:56.000Z'),
+  created_at: new Date('2026-06-03T17:50:05.000Z'),
+  service_title: 'Pengabdian Masyarakat Pengenalan AI',
+  description: 'memberikan pengenalan kepada masyarakat tentang sebuah teknolofi informasi yg terlah berkembang pesat saat ini yaitu ai',
+  start_date: new Date('2026-06-14T17:00:00.000Z'),
+  end_date: null,
+  location: 'Padang Pariaman, Nagari Pauh',
+  funding_source: 'DIPA UNAND',
+  creator_name: 'Dr. Sheva Ramadhan, M.Kom.',
+  creator_nidn: '0001010001',
+  creator_academic_rank: 'Asisten Ahli',
+  member_name: 'Athaya Nasywa Mahira, S.T., M.T.',
+  member_email: 'athaya@pengabdian.ac.id',
+  member_nidn: '0001010002',
+  member_academic_rank: 'Asisten Ahli'
+};
 
-// ── GET /undangan — Daftar undangan keanggotaan ──
-const getAllUndangan = async (req, res, next) => {
-  const connection = await db.getConnection();
+async function testPdf() {
   try {
-    const userId = req.session.userId;
-    const lecturerId = await getLecturerId(connection, userId);
-
-    let invitations = [];
-    if (lecturerId) {
-      const [rows] = await connection.query(
-        `SELECT csm.id, csm.role AS member_role, csm.status, csm.responded_at, csm.created_at,
-                cs.title AS service_title, cs.start_date, cs.location,
-                u.name AS creator_name
-         FROM community_service_members csm
-         JOIN community_services cs ON csm.community_service_id = cs.id
-         JOIN users u ON cs.created_by = u.id
-         WHERE csm.lecturer_id = ?
-         ORDER BY csm.created_at DESC`,
-        [lecturerId]
-      );
-      invitations = rows;
-    }
-
-    if (req.headers.accept && req.headers.accept.includes("application/json")) {
-      return res.status(200).json({ status: "success", data: invitations });
-    }
-
-    res.render("undangan/index", {
-      layout: "layouts/pengabdian",
-      pageTitle: "Undangan Keanggotaan",
-      user: req.session.user,
-      isAdmin: req.session.user?.role === "admin",
-      invitations,
-      flash: req.query.msg || null,
-      flashType: req.query.type || null,
+    // Set margins: bottom margin to 30 so that footer at height - 40 doesn't trigger page break
+    const doc = new PDFDocument({ 
+      size: "A4", 
+      margins: { top: 50, bottom: 30, left: 50, right: 50 } 
     });
-  } catch (error) {
-    console.error("Error Get All Undangan:", error);
-    next(error);
-  } finally {
-    connection.release();
-  }
-};
-
-// ── POST /undangan/:id/approve — Terima undangan ──
-const approveUndangan = async (req, res, next) => {
-  const connection = await db.getConnection();
-  try {
-    const { id } = req.params;
-    const userId = req.session.userId;
-    const lecturerId = await getLecturerId(connection, userId);
-
-    if (!lecturerId) {
-      return res.redirect("/undangan?msg=Akun+Anda+bukan+dosen.&type=error");
-    }
-
-    // Pastikan undangan ini milik dosen yang login dan masih pending
-    const [[invitation]] = await connection.query(
-      "SELECT * FROM community_service_members WHERE id = ? AND lecturer_id = ? AND status = 'pending'",
-      [id, lecturerId]
-    );
-
-    if (!invitation) {
-      return res.redirect("/undangan?msg=Undangan+tidak+ditemukan+atau+sudah+diproses.&type=error");
-    }
-
-    await connection.query(
-      "UPDATE community_service_members SET status = 'approved', responded_at = NOW(), updated_at = NOW() WHERE id = ?",
-      [id]
-    );
-
-    res.redirect("/undangan?msg=Undangan+berhasil+diterima.&type=success");
-  } catch (error) {
-    console.error("Error Approve Undangan:", error);
-    next(error);
-  } finally {
-    connection.release();
-  }
-};
-
-// ── POST /undangan/:id/reject — Tolak undangan ──
-const rejectUndangan = async (req, res, next) => {
-  const connection = await db.getConnection();
-  try {
-    const { id } = req.params;
-    const userId = req.session.userId;
-    const lecturerId = await getLecturerId(connection, userId);
-
-    if (!lecturerId) {
-      return res.redirect("/undangan?msg=Akun+Anda+bukan+dosen.&type=error");
-    }
-
-    const [[invitation]] = await connection.query(
-      "SELECT * FROM community_service_members WHERE id = ? AND lecturer_id = ? AND status = 'pending'",
-      [id, lecturerId]
-    );
-
-    if (!invitation) {
-      return res.redirect("/undangan?msg=Undangan+tidak+ditemukan+atau+sudah+diproses.&type=error");
-    }
-
-    await connection.query(
-      "UPDATE community_service_members SET status = 'rejected', responded_at = NOW(), updated_at = NOW() WHERE id = ?",
-      [id]
-    );
-
-    res.redirect("/undangan?msg=Undangan+berhasil+ditolak.&type=success");
-  } catch (error) {
-    console.error("Error Reject Undangan:", error);
-    next(error);
-  } finally {
-    connection.release();
-  }
-};
-
-// ── GET /undangan/:id/bukti — Unduh Bukti PDF ──
-const downloadBuktiPDF = async (req, res, next) => {
-  const connection = await db.getConnection();
-  try {
-    const { id } = req.params;
-    const userId = req.session.userId;
-    const lecturerId = await getLecturerId(connection, userId);
-
-    if (!lecturerId) {
-      return res.status(403).send("Akses ditolak.");
-    }
-
-    // Ambil data lengkap untuk bukti PDF (termasuk NIDN & jabatan ketua dan anggota)
-    const [[data]] = await connection.query(
-      `SELECT csm.id, csm.role AS member_role, csm.status, csm.responded_at, csm.created_at,
-              cs.title AS service_title, cs.description, cs.start_date, cs.end_date, cs.location, cs.funding_source,
-              u_creator.name AS creator_name,
-              l_creator.nidn AS creator_nidn,
-              l_creator.academic_rank AS creator_academic_rank,
-              u_member.name  AS member_name,
-              u_member.email AS member_email,
-              l_member.nidn  AS member_nidn,
-              l_member.academic_rank AS member_academic_rank
-       FROM community_service_members csm
-       JOIN community_services cs ON csm.community_service_id = cs.id
-       JOIN users u_creator ON cs.created_by = u_creator.id
-       LEFT JOIN lecturers l_creator ON u_creator.id = l_creator.user_id
-       JOIN lecturers l_member ON csm.lecturer_id = l_member.id
-       JOIN users u_member ON l_member.user_id = u_member.id
-       WHERE csm.id = ? AND csm.lecturer_id = ?`,
-      [id, lecturerId]
-    );
-
-    if (!data) {
-      return res.status(404).send("Data tidak ditemukan.");
-    }
-
-    // Hanya bisa unduh jika sudah diproses (bukan pending)
-    if (data.status === "pending") {
-      return res.redirect("/undangan?msg=Bukti+hanya+bisa+diunduh+setelah+undangan+diproses.&type=error");
-    }
-
-    // ── Generate PDF ──
-    const doc = new PDFDocument({ margin: 50, size: "A4" });
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=bukti-keanggotaan-${id}.pdf`
-    );
-    doc.pipe(res);
+    const writeStream = fs.createWriteStream('scratch/test-singlepage.pdf');
+    doc.pipe(writeStream);
 
     const isApproved = data.status === "approved";
 
     // 1. Logo area / Kop Surat
-    const fs = require("fs");
-    const path = require("path");
     const logoPath = path.join(__dirname, "../public/assets/images/logo-unand.png");
-
     if (fs.existsSync(logoPath)) {
       doc.image(logoPath, 50, 42, { width: 55 });
     } else {
@@ -309,8 +163,8 @@ const downloadBuktiPDF = async (req, res, next) => {
     doc.font("Helvetica")
        .text(`NIP / NIDN. — / ${data.creator_nidn || "-"}`, rightX, sigY + 84, { width: colWidth, align: "center" });
 
-    // 9. Fine Print / Footer (Shifted up to be within limits)
-    const footerY = doc.page.height - 45;
+    // 9. Fine Print / Footer (Shifted up to be within limits, margins.bottom is 30)
+    const footerY = doc.page.height - 40;
     doc.moveTo(50, footerY - 5).lineTo(545, footerY - 5).lineWidth(0.5).strokeColor("#cbd5e1").stroke();
 
     const printDateStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "2-digit", year: "numeric" });
@@ -319,12 +173,18 @@ const downloadBuktiPDF = async (req, res, next) => {
        .text(footerText, 50, footerY, { align: "center", width: 495 });
 
     doc.end();
-  } catch (error) {
-    console.error("Error Download Bukti PDF:", error);
-    next(error);
-  } finally {
-    connection.release();
-  }
-};
 
-module.exports = { getAllUndangan, approveUndangan, rejectUndangan, downloadBuktiPDF };
+    writeStream.on('finish', () => {
+      console.log("PDF generation test finished successfully! Saved to scratch/test-singlepage.pdf");
+      // Let's verify number of pages in the generated PDF
+      // In pdfkit, doc.bufferedPageRange() returns total pages.
+      // But we can check via pdf-reader or a simple search for "/Type /Page" count or skip it.
+      process.exit(0);
+    });
+  } catch (err) {
+    console.error("PDF generation test failed:", err);
+    process.exit(1);
+  }
+}
+
+testPdf();

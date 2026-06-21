@@ -11,6 +11,8 @@ router.get("/", indexController.index);
 router.get("/home", isAuthenticated, indexController.home);
 
 
+
+
 router.get("/login", indexController.loginPage);
 
 router.post("/login", indexController.login);

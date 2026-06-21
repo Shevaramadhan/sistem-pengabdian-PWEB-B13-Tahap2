@@ -31,17 +31,25 @@
         <% } %>
       </p>
     </div>
-    <% if (!service.status === 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
+    <% if (service.status !== 'completed' && !service.is_finalized && (isAdmin || service.created_by === locals.user?.id)) { %>
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         <a href="/pengabdian/<%= service.id %>/edit" class="btn-ghost-sm">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
           Edit
         </a>
-        <a href="/pengabdian/<%= service.id %>/upload" class="btn-ghost-sm" style="color: #0369a1; border-color: #bae6fd;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-          Upload Laporan
-        </a>
-        <% if (service.report_file) { %>
+        <% if (service.status === 'ongoing') { %>
+          <a href="/pengabdian/<%= service.id %>/upload" class="btn-ghost-sm" style="color: #0369a1; border-color: #bae6fd;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            Upload Laporan
+          </a>
+        <% } %>
+        <form action="/pengabdian/<%= service.id %>/delete" method="POST" style="display: inline;" onsubmit="return confirm('Yakin ingin menghapus pengabdian ini?');">
+          <button type="submit" class="btn-ghost-sm" style="color: #dc2626; border-color: #fca5a5;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            Hapus
+          </button>
+        </form>
+        <% if (service.report_file && service.status === 'ongoing') { %>
           <form action="/pengabdian/<%= service.id %>/finalisasi" method="POST" style="display: inline;" onsubmit="return confirm('Setelah difinalisasi, data tidak bisa diubah lagi. Lanjutkan?');">
             <button type="submit" class="btn-primary" style="padding: 6px 14px; font-size: 0.78rem;">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -93,9 +101,34 @@
       <p class="text-sm whitespace-pre-line bg-muted p-4 rounded-md border border-border" style="background: #f9fafb; border: 1px solid #e4eae7; border-radius: 8px; padding: 12px 16px;"><%= service.description || 'Tidak ada deskripsi.' %></p>
     </div>
 
-    <!-- Laporan Hasil -->
-    <div>
-      <h4 class="text-sm font-semibold text-muted-foreground mb-2">Laporan Hasil Pengabdian</h4>
+    <!-- Proposal & Laporan -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      
+      <!-- Proposal -->
+      <div>
+        <h4 class="text-sm font-semibold text-muted-foreground mb-2">Dokumen Proposal</h4>
+        <% if (service.proposal_file) { %>
+          <div style="display: flex; align-items: center; gap: 12px; background: #e0e7ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 12px 16px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4338ca" stroke-width="1.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 600; font-size: 0.85rem; color: #4338ca;">Proposal Tersedia</div>
+              <div style="font-size: 0.75rem; color: #3730a3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Unduh untuk melihat detail</div>
+            </div>
+            <a href="<%= service.proposal_file %>" target="_blank" class="btn-ghost-sm" style="white-space: nowrap; color: #4338ca; border-color: #c7d2fe; background: #fff;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              Download
+            </a>
+          </div>
+        <% } else { %>
+          <div style="background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 8px; padding: 16px; text-align: center;">
+            <p style="margin: 0; font-size: 0.85rem; color: #6b7280;">Proposal belum diunggah</p>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Laporan Hasil -->
+      <div>
+        <h4 class="text-sm font-semibold text-muted-foreground mb-2">Laporan Hasil Pengabdian</h4>
       <% if (service.report_file) { %>
         <div style="display: flex; align-items: center; gap: 12px; background: var(--ug-p); border: 1px solid #b5d9c4; border-radius: 8px; padding: 12px 16px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ug)" stroke-width="1.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -103,7 +136,7 @@
             <div style="font-weight: 600; font-size: 0.85rem; color: var(--ug);">Laporan tersedia</div>
             <div style="font-size: 0.75rem; color: #4a7a5e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><%= service.report_file %></div>
           </div>
-          <a href="/uploads/laporan/<%= service.report_file %>" target="_blank" class="btn-ghost-sm" style="white-space: nowrap;">
+          <a href="<%= service.report_file.startsWith('http') ? service.report_file : '/uploads/laporan/' + service.report_file %>" target="_blank" class="btn-ghost-sm" style="white-space: nowrap;">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
             Download
           </a>
@@ -112,8 +145,10 @@
         <div style="border: 2px dashed #d1e8d9; border-radius: 8px; padding: 20px; text-align: center; color: #6b7280;">
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="display: block; margin: 0 auto 8px;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
           <p style="font-size: 0.82rem; margin: 0 0 10px;">Belum ada laporan yang diupload.</p>
-          <% if (!service.status === 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
+          <% if (service.status === 'ongoing' && (isAdmin || service.created_by === locals.user?.id)) { %>
             <a href="/pengabdian/<%= service.id %>/upload" class="btn-ghost-sm">Upload Sekarang</a>
+          <% } else if (service.status === 'proposed') { %>
+            <span style="font-size: 0.8rem; color: #d97706; background: #fffbeb; padding: 4px 8px; border-radius: 4px;">Persetujuan admin (Status: Berjalan) diperlukan untuk mengupload laporan.</span>
           <% } %>
         </div>
       <% } %>
@@ -127,7 +162,7 @@
       <h2>Anggota Tim Pengabdian</h2>
       <p>Daftar dosen yang terlibat dalam pengabdian ini.</p>
     </div>
-    <% if (!service.status === 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
+    <% if (service.status !== 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
       <button class="btn-primary btn-sm" onclick="document.getElementById('addMemberModal').showModal()">
         + Tambah Anggota
       </button>
@@ -154,7 +189,7 @@
             <th>Peran</th>
             <th>Keahlian</th>
             <th>Status Konfirmasi</th>
-            <% if (!service.status === 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
+            <% if (service.status !== 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
               <th style="text-align: center;">Aksi</th>
             <% } %>
           </tr>
@@ -177,7 +212,7 @@
                   <span class="badge" style="background:#fef2f2; color:#dc2626; border:1px solid #fca5a5;">Ditolak</span>
                 <% } %>
               </td>
-              <% if (!service.status === 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
+              <% if (service.status !== 'completed' && (isAdmin || service.created_by === locals.user?.id)) { %>
                 <td style="text-align: center; white-space: nowrap;">
                   <button class="btn-ghost-sm" onclick="openEditMemberModal('<%= member.id %>', '<%= member.member_role %>', '<%= member.status %>')">Edit</button>
                   <form action="/pengabdian/<%= service.id %>/anggota/<%= member.id %>/delete" method="POST" style="display: inline;" onsubmit="return confirm('Hapus anggota ini?');">

@@ -28,9 +28,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const sessionStore = new MySQLStore({
   host: process.env.DB_HOST,
+  port: process.env.DB_PORT || 3306,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  ssl: { rejectUnauthorized: false }
 });
 
 app.use(session({
@@ -56,6 +58,7 @@ app.use('/users', usersRouter);
 app.use('/pengabdian', pengabdianRouter);
 app.use('/undangan', undanganRouter);
 
+// ─── Error Handlers ───
 app.use(notFoundHandler);
 app.use(errorHandler);
 

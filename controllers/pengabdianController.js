@@ -13,41 +13,64 @@ const getAllPengabdian = async (req, res, next) => {
     const isAdmin = role === "admin";
 
     const search = req.query.search || "";
-    const statusFilter = req.query.status || "";
-    const yearFilter = req.query.year || "";
-    const sortOrder = req.query.sort || "newest";
-
-    const page = parseInt(req.query.page) || 1;
-    const limit = 5;
+    const status = req.query.status || "";
+    const year   = req.query.year   || "";
+    const sort   = req.query.sort   || "newest";
+    const page   = parseInt(req.query.page) || 1;
+    const limit  = 10;
     const offset = (page - 1) * limit;
 
-    let whereClause = isAdmin ? "WHERE 1=1" : "WHERE cs.created_by = ?";
-    let params = isAdmin ? [] : [userId];
+    const statusFilter = status;
+    const yearFilter = year;
+    const sortOrder = sort;
 
+    // ── Build WHERE clause ──
+    let conditions = [];
+    let params     = [];
+
+    if (!isAdmin) {
+      conditions.push("cs.created_by = ?");
+      params.push(userId);
+    }
     if (search) {
-      whereClause += " AND (cs.title LIKE ? OR cs.location LIKE ?)";
+      conditions.push("(cs.title LIKE ? OR cs.location LIKE ?)");
       params.push(`%${search}%`, `%${search}%`);
     }
-    if (statusFilter) {
-      whereClause += " AND cs.status = ?";
-      params.push(statusFilter);
+    if (status) {
+      conditions.push("cs.status = ?");
+      params.push(status);
     }
-    if (yearFilter) {
-      whereClause += " AND YEAR(cs.start_date) = ?";
-      params.push(yearFilter);
-    }
-
-    let orderBy = "ORDER BY cs.created_at DESC";
-    if (sortOrder === "oldest") {
-      orderBy = "ORDER BY cs.created_at ASC";
+    if (year) {
+      conditions.push("YEAR(cs.start_date) = ?");
+      params.push(year);
     }
 
-    const countSql = `
-      SELECT COUNT(*) AS total
+    const whereClause = conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : "";
+    const orderClause = sort === "oldest" ? "ORDER BY cs.created_at ASC" : "ORDER BY cs.created_at DESC";
+
+    // ── Statistik ──
+    const statsSql = `
+      SELECT 
+        COUNT(*) AS total,
+        SUM(IF(cs.status = 'proposed', 1, 0))   AS proposed,
+        SUM(IF(cs.status IN ('verified', 'ongoing'), 1, 0))    AS ongoing,
+        SUM(IF(cs.status = 'completed', 1, 0))  AS completed
       FROM community_services cs
-      ${whereClause}`;
+      ${isAdmin ? "" : "WHERE cs.created_by = ?"}`;
+    const [[statsRow]] = await connection.query(statsSql, isAdmin ? [] : [userId]);
+
+    const stats = {
+      total:     statsRow.total     || 0,
+      proposed:  statsRow.proposed  || 0,
+      ongoing:   statsRow.ongoing   || 0,
+      completed: statsRow.completed || 0,
+    };
+
+    // ── Count dengan filter ──
+    const countSql = `SELECT COUNT(*) AS total FROM community_services cs ${whereClause}`;
     const [[{ total }]] = await connection.query(countSql, params);
 
+    // ── Data ──
     const dataSql = `
       SELECT cs.id, cs.title, cs.location, cs.start_date, cs.end_date,
              cs.status, cs.funding_source, cs.budget, cs.proposal_file,
@@ -57,37 +80,29 @@ const getAllPengabdian = async (req, res, next) => {
       FROM community_services cs
       JOIN users u ON cs.created_by = u.id
       ${whereClause}
-      ${orderBy}
+      ${orderClause}
       LIMIT ? OFFSET ?`;
     const [rows] = await connection.query(dataSql, [...params, limit, offset]);
 
-    const statsWhere = isAdmin ? "" : "WHERE created_by = ?";
-    const statsParams = isAdmin ? [] : [userId];
-    const [[stats]] = await connection.query(
-      `SELECT 
-        COUNT(*) AS total,
-        SUM(status = 'proposed') AS proposed,
-        SUM(status IN ('verified', 'ongoing')) AS ongoing,
-        SUM(status = 'completed') AS completed
-       FROM community_services ${statsWhere}`,
-      statsParams
+    // ── Available Years ──
+    const yearBaseCond = isAdmin ? "" : "WHERE cs.created_by = ?";
+    const [yearRows] = await connection.query(
+      `SELECT DISTINCT YEAR(cs.start_date) AS yr FROM community_services cs ${yearBaseCond} ORDER BY yr DESC`,
+      isAdmin ? [] : [userId]
     );
+    const availableYears = yearRows.map(r => r.yr).filter(Boolean);
 
-    const [yearsData] = await connection.query(`SELECT DISTINCT YEAR(start_date) AS yr FROM community_services ORDER BY yr DESC`);
-    const availableYears = yearsData.map(y => y.yr).filter(y => y);
+    const totalPages = Math.ceil(total / limit);
 
     res.render("pengabdian/index", {
-      layout: false,
+      layout: "layouts/pengabdian",
       pageTitle: "Daftar Pengabdian",
       user: req.session.user,
       isAdmin,
       services: rows,
-      stats: {
-        total: stats.total || 0,
-        proposed: stats.proposed || 0,
-        ongoing: stats.ongoing || 0,
-        completed: stats.completed || 0
-      },
+      search,
+      stats,
+      availableYears,
       filters: {
         search,
         status: statusFilter,
@@ -163,7 +178,7 @@ const getViewFormCreatePengabdian = async (req, res, next) => {
     connection.release();
 
     res.render("pengabdian/create", {
-      layout: false,
+      layout: "layouts/pengabdian",
       pageTitle: "Tambah Pengabdian",
       user: req.session.user,
       isAdmin: req.session.user?.role === "admin",
@@ -180,6 +195,10 @@ const getViewFormCreatePengabdian = async (req, res, next) => {
 // ── POST /pengabdian — Simpan data pengabdian baru ──
 const createPengabdian = async (req, res, next) => {
   const { title, description, location, start_date, end_date, funding_source } = req.body;
+  let proposalFile = null;
+  if (req.file) {
+    proposalFile = req.file.path && req.file.path.startsWith('http') ? req.file.path : `/uploads/proposals/${req.file.filename}`;
+  }
   let status = req.body.status;
   const isAdmin = req.session.user?.role === "admin";
   if (!isAdmin) {
@@ -189,8 +208,9 @@ const createPengabdian = async (req, res, next) => {
 
   if (!title?.trim()) errors.push("Judul wajib diisi.");
   if (!location?.trim()) errors.push("Lokasi wajib diisi.");
-  if (!start_date) errors.push("Tanggal mulai wajib diisi.");
-  if (!status) errors.push("Status wajib dipilih.");
+  if (!start_date)       errors.push("Tanggal mulai wajib diisi.");
+  if (!status)           errors.push("Status wajib dipilih.");
+  if (!proposalFile)     errors.push("File Proposal (PDF) wajib diunggah saat membuat pengabdian.");
 
   if (errors.length > 0) {
     return res.status(400).json({ status: 'error', message: errors.join(" ") });
@@ -200,8 +220,8 @@ const createPengabdian = async (req, res, next) => {
   try {
     await connection.query(
       `INSERT INTO community_services
-         (title, description, location, start_date, end_date, funding_source, status, created_by, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+         (title, description, location, start_date, end_date, funding_source, status, proposal_file, created_by, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
         title.trim(),
         description?.trim() || null,
@@ -210,6 +230,7 @@ const createPengabdian = async (req, res, next) => {
         end_date || null,
         funding_source?.trim() || null,
         status,
+        proposalFile,
         req.session.userId,
       ]
     );
@@ -246,8 +267,15 @@ const getViewFormUpdatePengabdian = async (req, res, next) => {
 const updatePengabdian = async (req, res, next) => {
   const { id } = req.params;
   const { title, description, location, start_date, end_date, funding_source } = req.body;
+  let proposalFile = null;
+  if (req.file) {
+    proposalFile = req.file.path && req.file.path.startsWith('http') ? req.file.path : `/uploads/proposals/${req.file.filename}`;
+  }
   let status = req.body.status;
   const isAdmin = req.session.user?.role === "admin";
+  if (!isAdmin) {
+    status = 'dummy'; // bypass validasi, nilai asli akan diambil dari DB di bawah
+  }
 
   const errors = [];
   if (!title?.trim()) errors.push("Judul wajib diisi.");
@@ -318,8 +346,8 @@ const getViewFormUploadLaporan = async (req, res, next) => {
     const role = req.session.user?.role;
     const service = res.locals.service;
 
-    if (service.status === 'completed') {
-      return res.status(403).render("error", { message: "Pengabdian sudah difinalisasi, tidak bisa upload laporan baru." });
+    if (service.status !== 'ongoing') {
+      return res.status(403).render("error", { message: "Hanya pengabdian berstatus Berjalan yang dapat mengupload laporan." });
     }
 
     res.render("pengabdian/upload", {
@@ -343,25 +371,27 @@ const uploadLaporan = async (req, res, next) => {
 
   const connection = await db.getConnection();
   try {
-    if (service.status === 'completed') {
-      return res.status(403).json({ status: 'error', message: 'Pengabdian sudah difinalisasi.' });
+    if (service.status !== 'ongoing') {
+      return res.status(403).json({ status: 'error', message: 'Hanya pengabdian berstatus Berjalan yang dapat mengupload laporan.' });
     }
 
     if (!req.file) {
       return res.status(400).json({ status: 'error', message: 'File laporan wajib dipilih.' });
     }
 
-    // Hapus file lama jika ada
-    if (service.report_file) {
+    // Hapus file lama jika ada (hanya jika local file, bukan URL)
+    if (service.report_file && !service.report_file.startsWith('http')) {
       const oldPath = path.join(__dirname, "../public/uploads/laporan", service.report_file);
       if (fs.existsSync(oldPath)) {
         try { fs.unlinkSync(oldPath); } catch (e) { console.error(e); }
       }
     }
 
+    const reportFile = (req.file.path && req.file.path.startsWith('http')) ? req.file.path : req.file.filename;
+
     await connection.query(
       "UPDATE community_services SET report_file=?, updated_at=NOW() WHERE id=?",
-      [req.file.filename, id]
+      [reportFile, id]
     );
 
     res.status(200).json({ status: 'success', message: 'Laporan berhasil diupload.', redirectUrl: `/pengabdian/${id}?success=laporan_uploaded` });
@@ -380,8 +410,8 @@ const finalizePengabdian = async (req, res, next) => {
 
   const connection = await db.getConnection();
   try {
-    if (service.status === 'completed') {
-      return res.status(400).json({ status: 'error', message: 'Pengabdian sudah difinalisasi.' });
+    if (service.status !== 'ongoing') {
+      return res.status(400).json({ status: 'error', message: 'Hanya pengabdian berstatus Berjalan yang dapat difinalisasi.' });
     }
 
     // Cek laporan sudah diupload sebelum finalisasi

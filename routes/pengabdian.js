@@ -5,14 +5,14 @@ const anggotaController = require("../controllers/anggotaController");
 const { isAuthenticated } = require("../middlewares/auth");
 const { checkPermission } = require("../middlewares/acl");
 const { verifyOwnership } = require("../middlewares/ownership");
-const { uploadLaporan } = require("../middlewares/upload");
+const { uploadLaporan, uploadProposal } = require("../middlewares/upload");
 
 router.use(isAuthenticated);
 
 // ── Pengabdian ──
 router.get("/", checkPermission("view_pengabdian"), pengabdianController.getAllPengabdian);
 router.get("/create", checkPermission("create_pengabdian"), pengabdianController.getViewFormCreatePengabdian);
-router.post("/", checkPermission("create_pengabdian"), pengabdianController.createPengabdian);
+router.post("/", checkPermission("create_pengabdian"), uploadProposal.single("proposal_file"), pengabdianController.createPengabdian);
 
 router.get("/export/excel", checkPermission("export_pengabdian"), pengabdianController.exportExcel);
 router.get("/export/pdf", checkPermission("export_pengabdian"), pengabdianController.exportPdf);

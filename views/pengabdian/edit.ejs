@@ -28,7 +28,7 @@
 
     <form action="/pengabdian/<%= service.id %>/edit" method="POST">
       <div class="form-group">
-        <label class="form-label" for="title">Judul Pengabdian</label>
+        <label class="form-label" for="title">Judul Pengabdian <span style="color:red;">*</span></label>
         <input type="text" id="title" name="title" class="form-input" value="<%= service.title %>" required>
       </div>
       
@@ -38,13 +38,13 @@
       </div>
       
       <div class="form-group">
-        <label class="form-label" for="location">Lokasi Pelaksanaan</label>
+        <label class="form-label" for="location">Lokasi Pelaksanaan <span style="color:red;">*</span></label>
         <input type="text" id="location" name="location" class="form-input" value="<%= service.location %>" required>
       </div>
       
       <div class="form-grid-2">
         <div class="form-group">
-          <label class="form-label" for="start_date">Tanggal Mulai</label>
+          <label class="form-label" for="start_date">Tanggal Mulai <span style="color:red;">*</span></label>
           <% 
             const dStart = new Date(service.start_date);
             const startStr = !isNaN(dStart) ? dStart.toISOString().split('T')[0] : '';

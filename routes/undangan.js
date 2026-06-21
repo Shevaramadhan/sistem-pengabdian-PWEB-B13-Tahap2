@@ -6,14 +6,14 @@ const { checkPermission }  = require("../middlewares/acl");
 
 router.use(isAuthenticated);
 
-// Daftar undangan (Modul 3 - Fitur 16)
+// Fitur 16: Lihat daftar undangan
 router.get("/", checkPermission("view_pengabdian"), undanganController.getAllUndangan);
 
-// Terima undangan (Modul 3 - Fitur 17)
-router.post("/:id/approve", checkPermission("view_pengabdian"), undanganController.approveUndangan);
+// Fitur 17: Terima undangan
+router.get("/:id/accept", checkPermission("view_pengabdian"), undanganController.acceptUndangan);
 
-// Tolak undangan (Modul 3 - Fitur 17)
-router.post("/:id/reject", checkPermission("view_pengabdian"), undanganController.rejectUndangan);
+// Fitur 17: Tolak undangan
+router.get("/:id/reject", checkPermission("view_pengabdian"), undanganController.rejectUndangan);
 
 // Unduh bukti PDF persetujuan/penolakan (Modul 3 - Fitur 18)
 router.get("/:id/bukti", checkPermission("view_pengabdian"), undanganController.downloadBuktiPDF);

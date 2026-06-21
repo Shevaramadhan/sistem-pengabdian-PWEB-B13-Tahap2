@@ -15,14 +15,31 @@ const getAllUndangan = async (req, res, next) => {
   const connection = await db.getConnection();
   try {
     const userId = req.session.userId;
-    const lecturerId = await getLecturerId(connection, userId);
+    // Dapatkan lecturer_id dari user yang login
+    const [[lecturer]] = await connection.query(
+      "SELECT id FROM lecturers WHERE user_id = ?",
+      [userId]
+    );
+    const lecturerId = lecturer ? lecturer.id : null;
 
     let invitations = [];
     if (lecturerId) {
       const [rows] = await connection.query(
-        `SELECT csm.id, csm.role AS member_role, csm.status, csm.responded_at, csm.created_at,
-                cs.title AS service_title, cs.start_date, cs.location,
-                u.name AS creator_name
+        `SELECT 
+            csm.id          AS id,
+            csm.id          AS member_record_id,
+            csm.role        AS member_role,
+            csm.status,
+            csm.created_at,
+            csm.responded_at,
+            cs.id           AS cs_id,
+            cs.title        AS cs_title,
+            cs.title        AS service_title,
+            cs.start_date   AS start_date,
+            cs.start_date   AS cs_start_date,
+            cs.location     AS location,
+            cs.location     AS cs_location,
+            u.name          AS creator_name
          FROM community_service_members csm
          JOIN community_services cs ON csm.community_service_id = cs.id
          JOIN users u ON cs.created_by = u.id
@@ -36,7 +53,6 @@ const getAllUndangan = async (req, res, next) => {
     if (req.headers.accept && req.headers.accept.includes("application/json")) {
       return res.status(200).json({ status: "success", data: invitations });
     }
-
     res.render("undangan/index", {
       layout: "layouts/pengabdian",
       pageTitle: "Undangan Keanggotaan",
@@ -54,26 +70,34 @@ const getAllUndangan = async (req, res, next) => {
   }
 };
 
-// ── POST /undangan/:id/approve — Terima undangan ──
-const approveUndangan = async (req, res, next) => {
+// ── GET /undangan/:id/accept — Terima undangan (Fitur 17) ──
+const acceptUndangan = async (req, res, next) => {
+  const { id } = req.params;
+  const userId  = req.session.userId;
+
   const connection = await db.getConnection();
   try {
-    const { id } = req.params;
-    const userId = req.session.userId;
-    const lecturerId = await getLecturerId(connection, userId);
-
-    if (!lecturerId) {
-      return res.redirect("/undangan?msg=Akun+Anda+bukan+dosen.&type=error");
-    }
-
-    // Pastikan undangan ini milik dosen yang login dan masih pending
-    const [[invitation]] = await connection.query(
-      "SELECT * FROM community_service_members WHERE id = ? AND lecturer_id = ? AND status = 'pending'",
-      [id, lecturerId]
+    // Pastikan undangan ini memang milik dosen yang login
+    const [[lecturer]] = await connection.query(
+      "SELECT id FROM lecturers WHERE user_id = ?",
+      [userId]
     );
 
-    if (!invitation) {
-      return res.redirect("/undangan?msg=Undangan+tidak+ditemukan+atau+sudah+diproses.&type=error");
+    if (!lecturer) {
+      return res.redirect("/undangan?error=not_lecturer");
+    }
+
+    const [[member]] = await connection.query(
+      "SELECT * FROM community_service_members WHERE id = ? AND lecturer_id = ?",
+      [id, lecturer.id]
+    );
+
+    if (!member) {
+      return res.redirect("/undangan?error=not_found");
+    }
+
+    if (member.status !== "pending") {
+      return res.redirect("/undangan?error=already_responded");
     }
 
     await connection.query(
@@ -81,34 +105,43 @@ const approveUndangan = async (req, res, next) => {
       [id]
     );
 
-    res.redirect("/undangan?msg=Undangan+berhasil+diterima.&type=success");
+    res.redirect("/undangan?success=accepted");
   } catch (error) {
-    console.error("Error Approve Undangan:", error);
+    console.error("Error Accept Undangan:", error);
     next(error);
   } finally {
     connection.release();
   }
 };
 
-// ── POST /undangan/:id/reject — Tolak undangan ──
+
+// ── GET /undangan/:id/reject — Tolak undangan (Fitur 17) ──
 const rejectUndangan = async (req, res, next) => {
+  const { id } = req.params;
+  const userId  = req.session.userId;
+
   const connection = await db.getConnection();
   try {
-    const { id } = req.params;
-    const userId = req.session.userId;
-    const lecturerId = await getLecturerId(connection, userId);
-
-    if (!lecturerId) {
-      return res.redirect("/undangan?msg=Akun+Anda+bukan+dosen.&type=error");
-    }
-
-    const [[invitation]] = await connection.query(
-      "SELECT * FROM community_service_members WHERE id = ? AND lecturer_id = ? AND status = 'pending'",
-      [id, lecturerId]
+    const [[lecturer]] = await connection.query(
+      "SELECT id FROM lecturers WHERE user_id = ?",
+      [userId]
     );
 
-    if (!invitation) {
-      return res.redirect("/undangan?msg=Undangan+tidak+ditemukan+atau+sudah+diproses.&type=error");
+    if (!lecturer) {
+      return res.redirect("/undangan?error=not_lecturer");
+    }
+
+    const [[member]] = await connection.query(
+      "SELECT * FROM community_service_members WHERE id = ? AND lecturer_id = ?",
+      [id, lecturer.id]
+    );
+
+    if (!member) {
+      return res.redirect("/undangan?error=not_found");
+    }
+
+    if (member.status !== "pending") {
+      return res.redirect("/undangan?error=already_responded");
     }
 
     await connection.query(
@@ -116,7 +149,7 @@ const rejectUndangan = async (req, res, next) => {
       [id]
     );
 
-    res.redirect("/undangan?msg=Undangan+berhasil+ditolak.&type=success");
+    res.redirect("/undangan?success=rejected");
   } catch (error) {
     console.error("Error Reject Undangan:", error);
     next(error);
@@ -327,4 +360,4 @@ const downloadBuktiPDF = async (req, res, next) => {
   }
 };
 
-module.exports = { getAllUndangan, approveUndangan, rejectUndangan, downloadBuktiPDF };
+module.exports = { getAllUndangan, acceptUndangan, rejectUndangan, downloadBuktiPDF };

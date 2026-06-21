@@ -59,3 +59,16 @@ typings/
 
 # next.js build output
 .next
+
+# Uploads
+public/uploads/proposals/*
+public/uploads/laporan/*
+!public/uploads/proposals/.gitkeep
+!public/uploads/laporan/.gitkeep
+
+# Playwright
+playwright-report/
+test-results/
+
+# Temp Scripts
+scripts/seed_aiven.js

@@ -1,10 +1,57 @@
 <style>
   /* ── Sidebar Custom Styling ── */
   #sidebar {
-    /* Mode Terang: Background sangat soft (putih sedikit hijau), teks gelap */
     background-color: #ffffff !important;
     border-right: 1px solid rgba(0, 133, 86, 0.06) !important;
     box-shadow: 4px 0 24px rgba(0, 133, 86, 0.02) !important;
+    /* Responsive: fixed overlay on mobile */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    z-index: 50 !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transform: translateX(0) !important;
+    overflow-y: auto !important;
+  }
+
+  /* Sidebar hidden (aria-hidden=true) → slide out to left */
+  #sidebar[aria-hidden="true"] {
+    transform: translateX(-100%) !important;
+    pointer-events: none !important;
+  }
+
+  /* On large screens (≥ 1024px): sidebar is part of the flow, not overlay */
+  @media (min-width: 1024px) {
+    #sidebar {
+      position: relative !important;
+      transform: none !important;
+      height: auto !important;
+      z-index: auto !important;
+    }
+    #sidebar[aria-hidden="true"] {
+      transform: none !important;
+      pointer-events: auto !important;
+    }
+  }
+
+  /* Mobile overlay backdrop */
+  #sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 49;
+    backdrop-filter: blur(2px);
+    transition: opacity 0.3s ease;
+  }
+  #sidebar-backdrop.active {
+    display: block;
+  }
+  @media (min-width: 1024px) {
+    #sidebar-backdrop {
+      display: none !important;
+    }
   }
   
   /* Teks dan ikon Mode Terang */
@@ -100,7 +147,10 @@
   }
 </style>
 
-<aside id="sidebar" class="sidebar" data-side="left" aria-hidden="false">
+<!-- Backdrop for mobile sidebar -->
+<div id="sidebar-backdrop"></div>
+
+<aside id="sidebar" class="sidebar" data-side="left" data-breakpoint="1024" aria-hidden="false">
   <nav aria-label="Sidebar navigation">
     <header>
       <a href="/home" class="btn-ghost p-2 h-12 w-full justify-start">
@@ -219,3 +269,40 @@
     </footer>
   </nav>
 </aside>
+
+<script>
+  (function () {
+    var sidebar = document.getElementById('sidebar');
+    var backdrop = document.getElementById('sidebar-backdrop');
+
+    // On mobile (<1024px), start with sidebar closed
+    if (window.innerWidth < 1024) {
+      sidebar.setAttribute('aria-hidden', 'true');
+      sidebar.setAttribute('inert', '');
+    }
+
+    // Observe sidebar aria-hidden to toggle backdrop on mobile
+    var observer = new MutationObserver(function () {
+      if (window.innerWidth >= 1024) return;
+      var isHidden = sidebar.getAttribute('aria-hidden') === 'true';
+      backdrop.classList.toggle('active', !isHidden);
+    });
+    observer.observe(sidebar, { attributes: true, attributeFilter: ['aria-hidden'] });
+
+    // Close sidebar when backdrop is clicked
+    backdrop.addEventListener('click', function () {
+      document.dispatchEvent(new CustomEvent('basecoat:sidebar', { detail: { action: 'close' } }));
+    });
+
+    // On resize: if going to desktop, always show sidebar and remove backdrop
+    window.addEventListener('resize', function () {
+      if (window.innerWidth >= 1024) {
+        sidebar.setAttribute('aria-hidden', 'false');
+        sidebar.removeAttribute('inert');
+        backdrop.classList.remove('active');
+      } else if (sidebar.getAttribute('aria-hidden') !== 'true') {
+        backdrop.classList.add('active');
+      }
+    });
+  })();
+</script>

@@ -25,7 +25,7 @@ if (useCloudinary) {
     cloudinary: cloudinary,
     params: {
       folder: "pengabdian_laporan",
-      resource_type: "raw", // Gunakan 'raw' untuk PDF, DOC, Excel agar aman
+      resource_type: "auto", // Gunakan 'auto' agar PDF terdeteksi sebagai image dan bisa diakses publik
       public_id: (req, file) => `laporan_${req.params.id}_${Date.now()}_${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`
     },
   });
@@ -70,7 +70,7 @@ if (useCloudinary) {
     cloudinary: cloudinary,
     params: {
       folder: "pengabdian_proposal",
-      resource_type: "raw", 
+      resource_type: "auto", 
       public_id: (req, file) => `proposal_${Date.now()}_${Math.round(Math.random() * 1e9)}.pdf`
     },
   });

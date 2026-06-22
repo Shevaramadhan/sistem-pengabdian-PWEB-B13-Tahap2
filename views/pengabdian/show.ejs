@@ -1,3 +1,4 @@
+<%# GET READ Fitur Dosen dapat melihat detail data pengabdian (Athaya Nasywa Mahira) %>
 <div class="breadcrumb">
   <a href="/pengabdian">Daftar Pengabdian</a>
   <span>/</span>
@@ -149,6 +150,11 @@
             <a href="/pengabdian/<%= service.id %>/upload" class="btn-ghost-sm">Upload Sekarang</a>
           <% } else if (service.status === 'proposed') { %>
             <span style="font-size: 0.8rem; color: #d97706; background: #fffbeb; padding: 4px 8px; border-radius: 4px;">Persetujuan admin (Status: Berjalan) diperlukan untuk mengupload laporan.</span>
+            <% if (isAdmin) { %>
+              <form action="/pengabdian/<%= service.id %>/approve" method="POST" style="display:inline-block; margin-top: 10px;">
+                <button type="submit" class="btn-primary btn-sm" style="background-color: var(--unand-green); color: white;">Setujui (Ubah ke Berjalan)</button>
+              </form>
+            <% } %>
           <% } %>
         </div>
       <% } %>

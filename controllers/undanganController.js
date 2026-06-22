@@ -10,7 +10,7 @@ async function getLecturerId(connection, userId) {
   return lecturer ? lecturer.id : null;
 }
 
-// ── GET /undangan — Daftar undangan keanggotaan ──
+// GET READ Fitur Dosen dapat melihat daftar undangan keanggotaan pengabdian (Sheva Ramadhan)
 const getAllUndangan = async (req, res, next) => {
   const connection = await db.getConnection();
   try {
@@ -70,7 +70,7 @@ const getAllUndangan = async (req, res, next) => {
   }
 };
 
-// ── GET /undangan/:id/accept — Terima undangan (Fitur 17) ──
+// GET UPDATE Fitur Dosen dapat menyetujui undangan keanggotaan pengabdian (Athaya Nasywa Mahira)
 const acceptUndangan = async (req, res, next) => {
   const { id } = req.params;
   const userId  = req.session.userId;
@@ -115,7 +115,7 @@ const acceptUndangan = async (req, res, next) => {
 };
 
 
-// ── GET /undangan/:id/reject — Tolak undangan (Fitur 17) ──
+// GET UPDATE Fitur Dosen dapat menolak undangan keanggotaan pengabdian (Athaya Nasywa Mahira)
 const rejectUndangan = async (req, res, next) => {
   const { id } = req.params;
   const userId  = req.session.userId;
@@ -158,7 +158,7 @@ const rejectUndangan = async (req, res, next) => {
   }
 };
 
-// ── GET /undangan/:id/bukti — Unduh Bukti PDF ──
+// GET DOWNLOAD Fitur Dosen dapat mengunduh bukti persetujuan atau penolakan keanggotaan dalam format PDF (Athaya Nasywa Mahira)
 const downloadBuktiPDF = async (req, res, next) => {
   const connection = await db.getConnection();
   try {

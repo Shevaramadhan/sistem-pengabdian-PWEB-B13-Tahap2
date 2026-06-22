@@ -1,6 +1,6 @@
 const db = require("../lib/db");
 
-// ── POST /pengabdian/:csId/anggota — Tambah anggota ke pengabdian (Fitur 12) ──
+// POST CREATE Fitur Dosen dapat menambahkan anggota pengabdian (Sheva Ramadhan)
 const createAnggota = async (req, res, next) => {
   const { csId } = req.params;
   const { lecturer_id, role } = req.body;
@@ -40,7 +40,7 @@ const createAnggota = async (req, res, next) => {
   }
 };
 
-// ── POST /pengabdian/:csId/anggota/:id/edit — Update peran/status anggota (Fitur 13) ──
+// POST UPDATE Fitur Dosen dapat mengubah data anggota pengabdian (Sheva Ramadhan)
 const updateAnggota = async (req, res, next) => {
   const { csId, id } = req.params;
   const { role, status } = req.body;
@@ -65,7 +65,7 @@ const updateAnggota = async (req, res, next) => {
   }
 };
 
-// ── POST /pengabdian/:csId/anggota/:id/delete — Hapus anggota dari pengabdian (Fitur 14) ──
+// POST DELETE Fitur Dosen dapat menghapus anggota pengabdian (Sheva Ramadhan)
 const deleteAnggota = async (req, res, next) => {
   const { csId, id } = req.params;
 

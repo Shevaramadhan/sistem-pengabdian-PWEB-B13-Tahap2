@@ -6,16 +6,14 @@ const { checkPermission }  = require("../middlewares/acl");
 
 router.use(isAuthenticated);
 
-// Fitur 16: Lihat daftar undangan
+// GET READ Fitur Dosen dapat melihat daftar undangan keanggotaan pengabdian (Sheva Ramadhan)
 router.get("/", checkPermission("view_pengabdian"), undanganController.getAllUndangan);
 
-// Fitur 17: Terima undangan
+// GET UPDATE Fitur Dosen dapat menyetujui atau menolak undangan keanggotaan pengabdian (Athaya Nasywa Mahira)
 router.get("/:id/accept", checkPermission("view_pengabdian"), undanganController.acceptUndangan);
-
-// Fitur 17: Tolak undangan
 router.get("/:id/reject", checkPermission("view_pengabdian"), undanganController.rejectUndangan);
 
-// Unduh bukti PDF persetujuan/penolakan (Modul 3 - Fitur 18)
+// GET DOWNLOAD Fitur Dosen dapat mengunduh bukti persetujuan atau penolakan keanggotaan dalam format PDF (Athaya Nasywa Mahira)
 router.get("/:id/bukti", checkPermission("view_pengabdian"), undanganController.downloadBuktiPDF);
 
 module.exports = router;

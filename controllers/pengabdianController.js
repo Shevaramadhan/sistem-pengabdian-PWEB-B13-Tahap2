@@ -4,7 +4,7 @@ const fs = require("fs");
 const ExcelJS = require("exceljs");
 const PdfTable = require("pdfkit-table");
 
-// ── GET /pengabdian — Daftar semua pengabdian ──
+// GET READ Fitur Dosen dapat melihat daftar pengabdian miliknya (Athaya Nasywa Mahira)
 const getAllPengabdian = async (req, res, next) => {
   const connection = await db.getConnection();
   try {
@@ -128,7 +128,7 @@ const getAllPengabdian = async (req, res, next) => {
   }
 };
 
-// ── GET /pengabdian/:id — Detail pengabdian
+// GET READ Fitur Dosen dapat melihat detail data pengabdian (Athaya Nasywa Mahira)
 const getPengabdianById = async (req, res, next) => {
   const connection = await db.getConnection();
   try {
@@ -176,7 +176,7 @@ const getPengabdianById = async (req, res, next) => {
   }
 };
 
-// ── GET /pengabdian/create — Tampilkan form tambah pengabdian ──
+// GET VIEW Fitur Dosen dapat menambahkan data pengabdian baru beserta proposal pengabdian (Athaya Nasywa Mahira)
 const getViewFormCreatePengabdian = async (req, res, next) => {
   try {
     const connection = await db.getConnection();
@@ -198,7 +198,7 @@ const getViewFormCreatePengabdian = async (req, res, next) => {
   }
 };
 
-// ── POST /pengabdian — Simpan data pengabdian baru ──
+// POST CREATE Fitur Dosen dapat menambahkan data pengabdian baru beserta proposal pengabdian (Athaya Nasywa Mahira)
 const createPengabdian = async (req, res, next) => {
   const { title, description, location, start_date, end_date, funding_source } = req.body;
   let proposalFile = null;
@@ -249,7 +249,7 @@ const createPengabdian = async (req, res, next) => {
   }
 };
 
-// ── GET /pengabdian/:id/edit — Tampilkan form edit pengabdian ──
+// GET VIEW Fitur Dosen dapat mengubah data pengabdian (Sheva Ramadhan)
 const getViewFormUpdatePengabdian = async (req, res, next) => {
   try {
     const role = req.session.user?.role;
@@ -269,7 +269,7 @@ const getViewFormUpdatePengabdian = async (req, res, next) => {
   }
 };
 
-// ── POST /pengabdian/:id/edit — Simpan perubahan data pengabdian ──
+// POST UPDATE Fitur Dosen dapat mengubah data pengabdian (Sheva Ramadhan)
 const updatePengabdian = async (req, res, next) => {
   const { id } = req.params;
   const { title, description, location, start_date, end_date, funding_source } = req.body;
@@ -327,7 +327,7 @@ const updatePengabdian = async (req, res, next) => {
   }
 };
 
-// ── POST /pengabdian/:id/delete — Hapus data pengabdian ──
+// POST DELETE Fitur Dosen dapat menghapus data pengabdian (Sheva Ramadhan)
 const deletePengabdian = async (req, res, next) => {
   const { id } = req.params;
 
@@ -346,7 +346,7 @@ const deletePengabdian = async (req, res, next) => {
   }
 };
 
-// ── GET /pengabdian/:id/upload — Tampilkan form upload laporan ──
+// GET VIEW Fitur Dosen dapat mengupload laporan hasil pengabdian (Sheva Ramadhan)
 const getViewFormUploadLaporan = async (req, res, next) => {
   try {
     const role = req.session.user?.role;
@@ -370,7 +370,7 @@ const getViewFormUploadLaporan = async (req, res, next) => {
   }
 };
 
-// ── POST /pengabdian/:id/upload — Simpan file laporan ──
+// POST UPLOAD Fitur Dosen dapat mengupload laporan hasil pengabdian (Sheva Ramadhan)
 const uploadLaporan = async (req, res, next) => {
   const { id } = req.params;
   const service = res.locals.service;
@@ -409,7 +409,7 @@ const uploadLaporan = async (req, res, next) => {
   }
 };
 
-// ── POST /pengabdian/:id/finalisasi — Finalisasi pengabdian ──
+// POST UPDATE Fitur Dosen dapat melakukan finalisasi pengajuan pengabdian (Sheva Ramadhan)
 const finalizePengabdian = async (req, res, next) => {
   const { id } = req.params;
   const service = res.locals.service;
@@ -439,7 +439,7 @@ const finalizePengabdian = async (req, res, next) => {
   }
 };
 
-// ── GET /pengabdian/export/excel — Export ke Excel ──
+// GET EXPORT Fitur Dosen dapat mengekspor data pengabdian ke format Excel (Sheva Ramadhan)
 const exportExcel = async (req, res, next) => {
   const connection = await db.getConnection();
   try {
@@ -561,6 +561,7 @@ module.exports = {
   getViewFormUploadLaporan,
   uploadLaporan,
   finalizePengabdian,
+  approvePengabdian,
   exportExcel,
   exportPdf,
 };

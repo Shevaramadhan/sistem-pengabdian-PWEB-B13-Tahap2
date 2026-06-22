@@ -6,6 +6,7 @@ const index = (req, res) => {
   res.redirect("/login");
 };
 
+// GET READ Fitur Dosen dapat melihat dashboard pengabdian (Athaya Nasywa Mahira)
 const home = async (req, res, next) => {
   try {
     const userId = req.session.userId;

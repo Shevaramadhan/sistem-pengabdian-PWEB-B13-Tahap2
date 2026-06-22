@@ -1,14 +1,14 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const apiController = require("../controllers/apiController");
-const { isAuthenticated } = require("../middlewares/auth");
+const apiController = require('../controllers/apiController');
+const { isAuthenticated } = require('../middlewares/auth');
 
-// RestAPI: Dosen dapat mengambil daftar pengabdian melalui RestAPI (Format JSON)
-// Penanggung Jawab: Sheva Ramadhan
-router.get("/pengabdian", isAuthenticated, apiController.getPengabdian);
+router.use(isAuthenticated);
 
-// RestAPI: Dosen dapat mengambil daftar undangan keanggotaan melalui RestAPI (Format JSON)
-// Penanggung Jawab: Athaya Nasywa Mahira
-router.get("/undangan", isAuthenticated, apiController.getUndangan);
+// GET READ Fitur Dosen dapat mengambil daftar pengabdian melalui RestAPI (Sheva Ramadhan)
+router.get('/pengabdian', apiController.getPengabdian);
+
+// GET READ Fitur Dosen dapat mengambil daftar undangan keanggotaan melalui RestAPI (Athaya Nasywa Mahira)
+router.get('/undangan', apiController.getUndangan);
 
 module.exports = router;

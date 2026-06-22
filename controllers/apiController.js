@@ -1,5 +1,6 @@
 const db = require('../lib/db');
 
+// GET READ Fitur Dosen dapat mengambil daftar pengabdian melalui RestAPI (Sheva Ramadhan)
 exports.getPengabdian = async (req, res, next) => {
   try {
     const [rows] = await db.query(`
@@ -19,6 +20,7 @@ exports.getPengabdian = async (req, res, next) => {
   }
 };
 
+// GET READ Fitur Dosen dapat mengambil daftar undangan keanggotaan melalui RestAPI (Athaya Nasywa Mahira)
 exports.getUndangan = async (req, res, next) => {
   try {
     const userId = req.session.userId;

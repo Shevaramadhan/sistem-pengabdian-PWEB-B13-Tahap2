@@ -23,10 +23,39 @@ test.describe('Modul Pengabdian - Upload Laporan', () => {
     await page.setInputFiles('input[name="proposal_file"]', filePath);
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/\/pengabdian/);
+    
+    // Search for the newly created item to ensure it's on the first page
+    await page.fill('input[name="search"]', dummyTitle);
+    await page.click('button:has-text("Filter")');
+    await page.waitForTimeout(500); // Wait for results
+
+    // Get the ID of the newly created service from the link
+    const row = page.locator('tr', { hasText: dummyTitle }).first();
+    const detailHref = await row.locator('a[title="Detail"]').getAttribute('href');
+    const serviceId = detailHref.split('/').pop();
+
+    // 3. Admin Approve (via API context to save time/UI steps)
+    const adminContext = await page.context().browser().newContext();
+    const adminPage = await adminContext.newPage();
+    await adminPage.goto('/login');
+    await adminPage.fill('input[name="username"]', 'admin');
+    await adminPage.fill('input[name="password"]', 'admin123');
+    await adminPage.click('button[type="submit"]');
+    await adminPage.waitForURL('/home');
+    
+    // Admin directly posts to approve
+    await adminPage.request.post(`/pengabdian/${serviceId}/approve`);
+    await adminPage.close();
+    await adminContext.close();
   });
 
   test('Gagal mengunggah laporan akhir jika file tidak dipilih', async ({ page }) => {
     await page.goto('/pengabdian');
+    
+    // Cari judul untuk memastikan muncul (handle pagination)
+    await page.fill('input[name="search"]', dummyTitle);
+    await page.click('button:has-text("Filter")');
+    await page.waitForTimeout(500);
     
     const row = page.locator('tr', { hasText: dummyTitle }).first();
     await row.locator('a[title="Upload Laporan"]').click();
@@ -50,6 +79,11 @@ test.describe('Modul Pengabdian - Upload Laporan', () => {
 
   test('Harus bisa mengunggah laporan akhir dengan benar', async ({ page }) => {
     await page.goto('/pengabdian');
+    
+    // Cari judul untuk memastikan muncul (handle pagination)
+    await page.fill('input[name="search"]', dummyTitle);
+    await page.click('button:has-text("Filter")');
+    await page.waitForTimeout(500);
     
     const row = page.locator('tr', { hasText: dummyTitle }).first();
     await row.locator('a[title="Upload Laporan"]').click();

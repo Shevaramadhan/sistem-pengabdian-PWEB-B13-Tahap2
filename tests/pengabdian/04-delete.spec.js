@@ -28,6 +28,11 @@ test.describe('Modul Pengabdian - Delete', () => {
   test('Harus bisa menghapus pengabdian', async ({ page }) => {
     await page.goto('/pengabdian');
     
+    // Cari judul untuk memastikan muncul (handle pagination)
+    await page.fill('input[name="search"]', dummyTitle);
+    await page.click('button:has-text("Filter")');
+    await page.waitForTimeout(500);
+    
     // Tangani dialog konfirmasi browser (Window Alert) secara otomatis
     page.on('dialog', dialog => dialog.accept());
     

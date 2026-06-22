@@ -56,20 +56,27 @@ test.describe('Modul Pengabdian - Skenario Multi-User (Admin)', () => {
 
     // Admin Buka Daftar Pengabdian (Melihat semua pengabdian)
     await adminPage.goto('/pengabdian');
+    
+    // Cari judul untuk memastikan muncul (handle pagination)
+    await adminPage.fill('input[name="search"]', dummyTitle);
+    await adminPage.click('button:has-text("Filter")');
+    await adminPage.waitForTimeout(500);
+    
     const adminRow = adminPage.locator('tr', { hasText: dummyTitle }).first();
     await expect(adminRow).toBeVisible();
     await expect(adminRow).toContainText('Diusulkan');
 
     // Admin klik Lihat Detail
-    await adminRow.locator('a[title="Lihat Detail"]').click();
+    await adminRow.locator('a[title="Detail"]').click();
     await adminPage.waitForURL(/\/pengabdian\/\d+/);
     
     // Admin menekan tombol Setujui (Ubah ke Berjalan)
     adminPage.on('dialog', dialog => dialog.accept()); // Setujui confirm dialog
     await adminPage.click('button:has-text("Setujui (Ubah ke Berjalan)")');
 
-    // Setelah disetujui, akan kembali ke halaman detail dengan param ?success=approved
-    await adminPage.waitForURL(/\/pengabdian\/\d+\?success=approved/);
+    // Setelah disetujui, pastikan muncul flash success
+    await expect(adminPage.locator('.flash-success')).toBeVisible({ timeout: 15000 });
+    await expect(adminPage.locator('.flash-success')).toContainText('berhasil disetujui');
 
     // Kembali ke halaman list untuk verifikasi
     await adminPage.goto('/pengabdian');

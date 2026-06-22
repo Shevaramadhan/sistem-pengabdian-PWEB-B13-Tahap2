@@ -24,7 +24,7 @@ const getAllPengabdian = async (req, res, next) => {
     const yearFilter = year;
     const sortOrder = sort;
 
-    // ── Build WHERE clause ──
+    // Build WHERE clause
     let conditions = [];
     let params     = [];
 
@@ -566,7 +566,7 @@ const approvePengabdian = async (req, res, next) => {
     }
     
     req.flash("success_msg", "Status pengabdian berhasil disetujui (Berjalan).");
-    res.redirect(`/pengabdian/${pengabdianId}`);
+    res.redirect(`/pengabdian/${pengabdianId}?success=approved`);
   } catch (err) {
     next(err);
   }

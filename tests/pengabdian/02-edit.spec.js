@@ -28,6 +28,11 @@ test.describe('Modul Pengabdian - Edit', () => {
   test('Gagal mengedit pengabdian jika data dihapus menjadi kosong', async ({ page }) => {
     await page.goto('/pengabdian');
     
+    // Cari judul untuk memastikan muncul (handle pagination)
+    await page.fill('input[name="search"]', dummyTitle);
+    await page.click('button:has-text("Filter")');
+    await page.waitForTimeout(500);
+    
     const row = page.locator('tr', { hasText: dummyTitle }).first();
     await row.locator('a[title="Edit"]').click();
     
@@ -53,6 +58,11 @@ test.describe('Modul Pengabdian - Edit', () => {
 
   test('Harus bisa mengedit pengabdian dengan data benar', async ({ page }) => {
     await page.goto('/pengabdian');
+    
+    // Cari judul untuk memastikan muncul (handle pagination)
+    await page.fill('input[name="search"]', dummyTitle);
+    await page.click('button:has-text("Filter")');
+    await page.waitForTimeout(500);
     
     const row = page.locator('tr', { hasText: dummyTitle }).first();
     await row.locator('a[title="Edit"]').click();

@@ -9,6 +9,8 @@
 <% if (typeof req !== 'undefined' && req.query) { %>
   <% if (req.query.success === 'updated') { %>
     <div class="flash-success mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>Data pengabdian berhasil diperbarui.</span></div>
+  <% } else if (req.query.success === 'approved') { %>
+    <div class="flash-success mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>Pengabdian berhasil disetujui. Status berubah menjadi <strong>Sedang Berjalan</strong>.</span></div>
   <% } else if (req.query.success === 'laporan_uploaded') { %>
     <div class="flash-success mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>Laporan hasil pengabdian berhasil diupload.</span></div>
   <% } else if (req.query.success === 'finalized') { %>
@@ -34,6 +36,14 @@
     </div>
     <% if (service.status !== 'completed' && !service.is_finalized && (isAdmin || service.created_by === locals.user?.id)) { %>
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <% if (isAdmin && service.status === 'proposed') { %>
+          <form action="/pengabdian/<%= service.id %>/approve" method="POST" style="display: inline;" onsubmit="return confirm('Setujui pengabdian ini dan ubah statusnya menjadi Sedang Berjalan?');">
+            <button type="submit" class="btn-primary" style="padding: 6px 14px; font-size: 0.78rem; background: #15803d;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Setujui (Ubah ke Berjalan)
+            </button>
+          </form>
+        <% } %>
         <a href="/pengabdian/<%= service.id %>/edit" class="btn-ghost-sm">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
           Edit
@@ -150,11 +160,7 @@
             <a href="/pengabdian/<%= service.id %>/upload" class="btn-ghost-sm">Upload Sekarang</a>
           <% } else if (service.status === 'proposed') { %>
             <span style="font-size: 0.8rem; color: #d97706; background: #fffbeb; padding: 4px 8px; border-radius: 4px;">Persetujuan admin (Status: Berjalan) diperlukan untuk mengupload laporan.</span>
-            <% if (isAdmin) { %>
-              <form action="/pengabdian/<%= service.id %>/approve" method="POST" style="display:inline-block; margin-top: 10px;">
-                <button type="submit" class="btn-primary btn-sm" style="background-color: var(--unand-green); color: white;">Setujui (Ubah ke Berjalan)</button>
-              </form>
-            <% } %>
+
           <% } %>
         </div>
       <% } %>

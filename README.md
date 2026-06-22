@@ -107,6 +107,35 @@ Gunakan kredensial berikut untuk menguji coba fitur aplikasi di server *producti
 
 ---
 
+## 👥 Pembagian Tugas Anggota
+
+**Kelompok 13 - PWEB B**
+
+| No | Fitur | Penanggung Jawab | NIM |
+|---|---|---|---|
+| 1 | Dosen dapat melihat dashboard pengabdian | Athaya Nasywa Mahira | 2411523028 |
+| 2 | Dosen dapat melihat daftar pengabdian miliknya | Athaya Nasywa Mahira | 2411523028 |
+| 3 | Dosen dapat melihat detail data pengabdian | Athaya Nasywa Mahira | 2411523028 |
+| 4 | Dosen dapat mencari data pengabdian | Athaya Nasywa Mahira | 2411523028 |
+| 5 | Dosen dapat menambahkan data pengabdian baru beserta proposal pengabdian | Athaya Nasywa Mahira | 2411523028 |
+| 6 | Dosen dapat melihat status pengajuan proposal pengabdian | Athaya Nasywa Mahira | 2411523028 |
+| 7 | Dosen dapat mengubah data pengabdian | Sheva Ramadhan | 2411523020 |
+| 8 | Dosen dapat menghapus data pengabdian | Sheva Ramadhan | 2411523020 |
+| 9 | Dosen dapat mengekspor data pengabdian ke format PDF atau Excel | Sheva Ramadhan | 2411523020 |
+| 10 | Dosen dapat mengupload laporan hasil pengabdian | Sheva Ramadhan | 2411523020 |
+| 11 | Dosen dapat melakukan finalisasi pengajuan pengabdian | Sheva Ramadhan | 2411523020 |
+| 12 | Dosen dapat menambahkan anggota pengabdian | Sheva Ramadhan | 2411523020 |
+| 13 | Dosen dapat mengubah data anggota pengabdian | Sheva Ramadhan | 2411523020 |
+| 14 | Dosen dapat menghapus anggota pengabdian | Sheva Ramadhan | 2411523020 |
+| 15 | Dosen dapat melihat notifikasi undangan keanggotaan pengabdian | Athaya Nasywa Mahira | 2411523028 |
+| 16 | Dosen dapat melihat daftar undangan keanggotaan pengabdian | Sheva Ramadhan | 2411523020 |
+| 17 | Dosen dapat menyetujui/menolak undangan keanggotaan pengabdian (Approval) | Athaya Nasywa Mahira | 2411523028 |
+| 18 | Dosen dapat mengunduh bukti persetujuan/penolakan keanggotaan dalam format PDF | Athaya Nasywa Mahira | 2411523028 |
+| **19** | **Dosen dapat mengambil daftar pengabdian melalui RestAPI (Format JSON)** | **Sheva Ramadhan** | **2411523020** |
+| **20** | **Dosen dapat mengambil daftar undangan keanggotaan melalui RestAPI (Format JSON)** | **Athaya Nasywa Mahira** | **2411523028** |
+
+---
+
 ## 🧪 Pengujian Otomatis (Testing)
 Aplikasi ini diuji menggunakan **Playwright** untuk memastikan seluruh alur berjalan tanpa bug. 18 Skenario pengujian (100% Lulus) mencakup autentikasi, validasi form, hingga IDOR protection.
 

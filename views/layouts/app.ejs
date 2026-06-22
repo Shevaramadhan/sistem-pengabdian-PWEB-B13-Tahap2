@@ -48,9 +48,7 @@
     </script>
   </head>
 
-  <body class="min-h-screen bg-background antialiased">
-    <%# Responsive layout wrapper %>
-    <div class="flex min-h-screen">
+  <body>
     <%# ---- Sidebar active link script ---- %>
     <script>
       (() => {
@@ -85,13 +83,12 @@
     <%- include('../partials/sidebar') %>
 
     <%# ---- Main Content ---- %>
-    <main id="content" class="flex-1 min-w-0 flex flex-col">
+    <main id="content">
       <%- include('../partials/topbar', { pageTitle: typeof pageTitle !== 'undefined' ? pageTitle : '' }) %>
-      <div class="p-4 md:p-6 flex-1">
+      <div class="p-4 md:p-6">
         <%- body %>
       </div>
     </main>
-    </div><%# close flex wrapper %>
 
     <%# ---- Basecoat JS (harus di akhir body) ---- %>
     <script src="/assets/js/basecoat.js" defer></script>

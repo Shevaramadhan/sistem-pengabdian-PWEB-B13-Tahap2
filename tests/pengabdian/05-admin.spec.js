@@ -60,15 +60,18 @@ test.describe('Modul Pengabdian - Skenario Multi-User (Admin)', () => {
     await expect(adminRow).toBeVisible();
     await expect(adminRow).toContainText('Diusulkan');
 
-    // Admin klik Edit
-    await adminRow.locator('a[title="Edit"]').click();
-    
-    // Admin mengubah status menjadi Sedang Berjalan (ongoing)
-    await adminPage.selectOption('select[name="status"]', 'ongoing');
-    await adminPage.click('button[type="submit"]');
-
-    // Admin diarahkan ke detail pengabdian, kembali ke halaman list
+    // Admin klik Lihat Detail
+    await adminRow.locator('a[title="Lihat Detail"]').click();
     await adminPage.waitForURL(/\/pengabdian\/\d+/);
+    
+    // Admin menekan tombol Setujui (Ubah ke Berjalan)
+    adminPage.on('dialog', dialog => dialog.accept()); // Setujui confirm dialog
+    await adminPage.click('button:has-text("Setujui (Ubah ke Berjalan)")');
+
+    // Setelah disetujui, akan kembali ke halaman detail dengan param ?success=approved
+    await adminPage.waitForURL(/\/pengabdian\/\d+\?success=approved/);
+
+    // Kembali ke halaman list untuk verifikasi
     await adminPage.goto('/pengabdian');
 
     // Verifikasi perubahan status di tabel Admin

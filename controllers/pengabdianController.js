@@ -426,7 +426,7 @@ const finalizePengabdian = async (req, res, next) => {
     }
 
     await connection.query(
-      "UPDATE community_services SET is_finalized=1, status='completed', finalized_at=NOW(), updated_at=NOW() WHERE id=?",
+      "UPDATE community_services SET status='completed', updated_at=NOW() WHERE id=?",
       [id]
     );
 

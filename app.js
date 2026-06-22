@@ -11,6 +11,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var pengabdianRouter = require('./routes/pengabdian');
 var undanganRouter = require('./routes/undangan');
+var apiRouter = require('./routes/api');
 const { notFoundHandler, errorHandler } = require('./middlewares/error');
 
 var app = express();
@@ -57,6 +58,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/pengabdian', pengabdianRouter);
 app.use('/undangan', undanganRouter);
+app.use('/api', apiRouter);
 
 // ─── Error Handlers ───
 app.use(notFoundHandler);

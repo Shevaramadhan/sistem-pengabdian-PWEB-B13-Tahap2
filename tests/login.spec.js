@@ -14,7 +14,7 @@ test.describe('Autentikasi Login', () => {
     await page.click('button[type="submit"]');
     
     // Pastikan muncul alert error
-    const errorAlert = page.locator('.text-destructive');
+    const errorAlert = page.locator('.error-alert');
     await expect(errorAlert).toBeVisible();
     await expect(errorAlert).toContainText('Username atau password salah');
   });

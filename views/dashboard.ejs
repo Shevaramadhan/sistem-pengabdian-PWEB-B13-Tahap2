@@ -126,6 +126,41 @@
   .step-line { height: 3px; flex: 1; margin: -16px -15% 0 -15%; z-index: 1; border-radius: 2px; }
   .step-line.active { background: var(--unand-green); }
   .step-line.inactive { background: #e5e7eb; }
+
+  /* ── Responsive Dashboard ── */
+  .dashboard-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 1023px) {
+    .dashboard-stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 639px) {
+    .dashboard-stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .stat-card {
+      padding: 16px 12px;
+      gap: 12px;
+      flex-direction: column;
+      text-align: center;
+      justify-content: center;
+    }
+    .stat-icon {
+      width: 44px; height: 44px;
+    }
+    .stat-value {
+      font-size: 1.6rem;
+    }
+    .welcome-banner {
+      padding: 20px 24px;
+    }
+  }
   </style>
 <div style="max-width:1280px; margin:0 auto;">
 
@@ -151,8 +186,8 @@
         </div>
       </div>
 
-      <!-- Stat Cards (4 kolom horizontal) -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+      <!-- Stat Cards -->
+      <div class="dashboard-stats-grid">
 
         <% if (isAdmin) { %>
         <div class="stat-card">

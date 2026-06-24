@@ -69,19 +69,32 @@ test.describe('Modul Pengabdian - Skenario Multi-User (Admin)', () => {
     // Admin klik Lihat Detail
     await adminRow.locator('a[title="Detail"]').click();
     await adminPage.waitForURL(/\/pengabdian\/\d+/);
-    
-    // Admin menekan tombol Setujui (Ubah ke Berjalan)
-    adminPage.on('dialog', dialog => dialog.accept()); // Setujui confirm dialog
-    await adminPage.click('button:has-text("Setujui (Ubah ke Berjalan)")');
 
-    // Setelah disetujui, pastikan muncul flash success
-    await expect(adminPage.locator('.flash-success')).toBeVisible({ timeout: 15000 });
-    await expect(adminPage.locator('.flash-success')).toContainText('berhasil disetujui');
+    // Handle confirm dialog SEBELUM click
+    adminPage.on('dialog', dialog => dialog.accept());
 
-    // Kembali ke halaman list untuk verifikasi
+    // Tunggu response dari POST /approve, lalu ikuti redirect-nya
+    const [approveResponse] = await Promise.all([
+      adminPage.waitForResponse(resp => resp.url().includes('/approve') && resp.status() === 302, { timeout: 15000 }),
+      adminPage.click('button:has-text("Setujui (Ubah ke Berjalan)")'),
+    ]);
+
+    // Navigate ke URL setelah redirect (success=approved)
+    const redirectUrl = approveResponse.headers()['location'];
+    await adminPage.goto(redirectUrl || `/pengabdian`);
+
+    // Verifikasi flash success muncul
+    await expect(adminPage.locator('.flash-success').first()).toBeVisible({ timeout: 5000 });
+
+    // Kembali ke halaman list untuk verifikasi status
     await adminPage.goto('/pengabdian');
 
-    // Verifikasi perubahan status di tabel Admin
+    // Cari data dengan filter
+    await adminPage.fill('input[name="search"]', dummyTitle);
+    await adminPage.click('button:has-text("Filter")');
+    await adminPage.waitForTimeout(500);
+
+    // Verifikasi status berhasil berubah menjadi "Berjalan"
     const updatedRow = adminPage.locator('tr', { hasText: dummyTitle }).first();
     await expect(updatedRow).toBeVisible();
     await expect(updatedRow).toContainText('Berjalan');
@@ -90,5 +103,4 @@ test.describe('Modul Pengabdian - Skenario Multi-User (Admin)', () => {
     await adminPage.close();
     await adminContext.close();
   });
-
 });

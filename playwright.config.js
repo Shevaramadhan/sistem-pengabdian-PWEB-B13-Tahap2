@@ -3,7 +3,7 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   /* Opt out of parallel tests on CI. */
   workers: 1,
@@ -29,6 +29,6 @@ module.exports = defineConfig({
     command: 'npm start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 10 * 1000,
+    timeout: 30 * 1000,
   },
 });

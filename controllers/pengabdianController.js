@@ -561,11 +561,9 @@ const approvePengabdian = async (req, res, next) => {
     );
     
     if (result.affectedRows === 0) {
-      req.flash("error_msg", "Data pengabdian tidak ditemukan.");
       return res.redirect("/pengabdian");
     }
     
-    req.flash("success_msg", "Status pengabdian berhasil disetujui (Berjalan).");
     res.redirect(`/pengabdian/${pengabdianId}?success=approved`);
   } catch (err) {
     next(err);

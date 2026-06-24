@@ -152,7 +152,11 @@ const login = async (req, res, next) => {
       lecturerId: user.lecturer_id || null,
     };
 
-    res.redirect("/home");
+    // Pastikan session tersimpan ke MySQL SEBELUM redirect
+    req.session.save((err) => {
+      if (err) return next(err);
+      res.redirect("/home");
+    });
   } catch (err) {
     next(err);
   }
